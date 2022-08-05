@@ -1,0 +1,134 @@
+{
+  // cycle_time: maximum cycle time, float (required)
+  "cycle_time": 0.0,
+  // robots: description of individual robots, array of objects (required)
+  "robots": [
+    {
+      // id: unique robot identifier, string (required)
+      "id": "",
+      // position: position of robot in cartesian coordinates, object (required)
+      "position": { "x": 0.0, "y": 0.0, "z": 0.0 },
+      // weight: robot weight, float (required)
+      "weight": 0.0,
+      // load_capacity: robot maximal loading capacity, float (required)
+      "load_capacity": 0.0,
+      // input_power: robot input power, float (required)
+      "input_power": 0.0,
+      // activities: sequence of robot activities, the first one is an initial one, array of objects (required)
+      "activities": [
+        {
+          // type: static activity type, "static" (required)
+          "type": "static",
+          // id: unique identifier among all activities, string (required)
+          "id": "",
+          // min_duration: minimal duration of an activity, float (optional)
+          "min_duration": 0.0,
+          // payload_weight: payload weight during an activity, float (required)
+          "payload_weight": 0.0,
+          // position: position of robot's tool/payload in cartesian coordinates, object (required)
+          "position": { "x": 0.0, "y": 0.0, "z": 0.0 }
+        },
+        {
+          // type: dynamic activity type, "dynamic" (required)
+          "type": "dynamic",
+          // id: unique identifier among all activities, string (required)
+          "id": "",
+          // movement_type: linear dynamic activity, "linear" (required)
+          "movement_type": "linear",
+          // min_duration: minimal duration of an activity, if not given, it is estimated from other activity info,
+          //               float (optional)
+          "min_duration": 0.0,
+          // max_duration: maximal duration of an activity, if not given, it is estimated from other activity info,
+          //               float (optional)
+          "max_duration": 0.0,
+          // payload_weight: payload weight during an activity, float (required)
+          "payload_weight": 0.0,
+          // start: starting position of robot's tool/payload in cartesian coordinates, object (required)
+          "start": { "x": 0.0, "y": 0.0, "z": 0.0 },
+          // end: ending position of robot's tool/payload in cartesian coordinates, object (required)
+          "end": { "x": 0.0, "y": 0.0, "z": 0.0 }
+        },
+        {
+          // type: dynamic activity type, "dynamic" (required)
+          "type": "dynamic",
+          // id: unique identifier among all activities, string (required)
+          "id": "",
+          // movement_type: joint dynamic activity, "joint" (required)
+          "movement_type": "joint",
+          // min_duration: minimal duration of an activity, if not given, it is estimated from other activity info,
+          //               float (optional)
+          "min_duration": 0.0,
+          // max_duration: maximal duration of an activity, if not given, it is estimated from other activity info,
+          //               float (optional)
+          "max_duration": 0.0,
+          // payload_weight: payload weight during an activity, float (required)
+          "payload_weight": 0.0,
+          // start: starting position of robot's tool/payload in cartesian coordinates, object (required)
+          "start": { "x": 0.0, "y": 0.0, "z": 0.0 },
+          // end: ending position of robot's tool/payload in cartesian coordinates, object (required)
+          "end": { "x": 0.0, "y": 0.0, "z": 0.0 }
+        },
+        {
+          // type: dynamic activity type, "dynamic" (required)
+          "type": "dynamic",
+          // id: unique identifier among all activities, string (required)
+          "id": "",
+          // movement_type: compound dynamic activity, "compound" (required)
+          "movement_type": "compound",
+          // min_duration: minimal duration of an activity, if not given, it is estimated from other activity info,
+          //               float (optional)
+          "min_duration": 0.0,
+          // max_duration: maximal duration of an activity, if not given, it is estimated from other activity info,
+          //               float (optional)
+          "max_duration": 0.0,
+          // payload_weight: payload weight during an activity, float (required)
+          "payload_weight": 0.0,
+          // partial_movements: particular partial linear/joint movements of compound activity,
+          //                    array of objects (required)
+          "partial_movements": [
+            {
+              // start: starting position of robot's tool/payload in partial movement in cartesian coordinates,
+              //        object (required)
+              "start": { "x": 0.0, "y": 0.0, "z": 0.0 },
+              // end: ending position of robot's tool/payload in partial movement in cartesian coordinates,
+              //      object (required)
+              "end": { "x": 0.0, "y": 0.0, "z": 0.0 },
+              // movement_type: linear partial activity, "linear" (required)
+              "movement_type": "linear"
+            },
+            {
+              // start: starting position of robot's tool/payload in partial movement in cartesian coordinates,
+              //        object (required)
+              "start": { "x": 0.0, "y": 0.0, "z": 0.0 },
+              // end: ending position of robot's tool/payload in partial movement in cartesian coordinates,
+              //      object (required)
+              "end": { "x": 0.0, "y": 0.0, "z": 0.0 },
+              // movement_type: joint partial activity, "joint" (required)
+              "movement_type": "joint"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  // time_offsets: pairs of activities which are relative-time-restricted, array of objects (optional)
+  "time_offsets": [
+    {
+      // a_id: if of the first activity, string (required)
+      "a_id": "",
+      // b_id: if of the second activity, string (required)
+      "b_id": "",
+      // offset: minimal time between activities
+      "offset": 0.0
+    }
+  ],
+  // collisions: pairs of colliding activities, i.e. they cannot be executed at once, array of objects (optional)
+  "collisions": [
+    {
+      // a_id: if of the first activity in collision, string (required)
+      "a_id": "",
+      // b_id: if of the second activity in collision, string (required)
+      "b_id": ""
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+class BadInputFileError(Exception):
+    pass
