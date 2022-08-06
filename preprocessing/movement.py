@@ -5,7 +5,7 @@ from numpy import sqrt, abs, sin
 from scipy.integrate import quad as integral
 
 import utils.geometry_3d as g3d
-from nn.movement_nn import MovementNNParams
+from nn.movement_energy_nn import MovementNNParams
 from preprocessing.robot import Robot
 from utils.geometry_3d import Point3D
 

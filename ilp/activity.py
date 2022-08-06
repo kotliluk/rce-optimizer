@@ -1,12 +1,14 @@
-import gurobipy as g
 from typing import Optional, List
 
+import gurobipy as g
+
+from nn.movement_duration_nn import MovementDurationNN
+from nn.movement_energy_nn import MovementEnergyNN
 from nn.position_nn import PositionNN
-from nn.movement_nn import MovementNN
+from preprocessing.movement import LinearMovement, JointMovement, SimpleMovement, CompoundMovement, Movement
 from preprocessing.piecewise_linearization import piecewise_linearize
-from preprocessing.robot import Robot
 from preprocessing.position import Position
-from preprocessing.movement import LinearMovement, JointMovement, SimpleMovement, CompoundMovement
+from preprocessing.robot import Robot
 from utils.geometry_2d import Line2D
 from utils.geometry_3d import Point3D
 
@@ -95,7 +97,8 @@ class DynamicActivity(Activity):
         end: Point3D,
         payload_weight: float,
         robot: Robot,
-        nn: MovementNN,
+        energy_nn: MovementEnergyNN,
+        duration_nn: MovementDurationNN,
     ):
         """
         Computes linear dynamic activity piecewise-linearized energy consumption function using given input parameters
@@ -103,11 +106,7 @@ class DynamicActivity(Activity):
         """
         self.movement_type = 'linear'
         movement = LinearMovement(start, end, payload_weight, robot)
-        non_linear_coefs = nn.estimate(movement.to_nn_params())
-        # TODO - estimate min and max duration
-        min_duration = self.min_duration if self.min_duration is not None else 1
-        max_duration = self.max_duration if self.max_duration is not None else 10
-        self.energy_profile_lines = piecewise_linearize(non_linear_coefs, min_duration, max_duration)
+        self._compute_energy_profile(movement, energy_nn, duration_nn)
 
     def compute_joint_energy_profile(
         self,
@@ -115,7 +114,8 @@ class DynamicActivity(Activity):
         end: Point3D,
         payload_weight: float,
         robot: Robot,
-        nn: MovementNN,
+        energy_nn: MovementEnergyNN,
+        duration_nn: MovementDurationNN,
     ):
         """
         Computes joint dynamic activity piecewise-linearized energy consumption function using given input parameters
@@ -123,18 +123,15 @@ class DynamicActivity(Activity):
         """
         self.movement_type = 'joint'
         movement = JointMovement(start, end, payload_weight, robot)
-        non_linear_coefs = nn.estimate(movement.to_nn_params())
-        # TODO - estimate min and max duration
-        min_duration = self.min_duration if self.min_duration is not None else 1
-        max_duration = self.max_duration if self.max_duration is not None else 10
-        self.energy_profile_lines = piecewise_linearize(non_linear_coefs, min_duration, max_duration)
+        self._compute_energy_profile(movement, energy_nn, duration_nn)
 
     def compute_compound_energy_profile(
         self,
         partial_movements: List[SimpleMovement],
         payload_weight: float,
         robot: Robot,
-        nn: MovementNN,
+        energy_nn: MovementEnergyNN,
+        duration_nn: MovementDurationNN,
     ):
         """
         Computes compound dynamic activity piecewise-linearized energy consumption function using given input parameters
@@ -142,10 +139,18 @@ class DynamicActivity(Activity):
         """
         self.movement_type = 'compound'
         movement = CompoundMovement(partial_movements, payload_weight, robot)
-        non_linear_coefs = nn.estimate(movement.to_nn_params())
-        # TODO - estimate min and max duration
-        min_duration = self.min_duration if self.min_duration is not None else 1
-        max_duration = self.max_duration if self.max_duration is not None else 10
+        self._compute_energy_profile(movement, energy_nn, duration_nn)
+
+    def _compute_energy_profile(self, movement: Movement, energy_nn: MovementEnergyNN, duration_nn: MovementDurationNN):
+        nn_params = movement.to_nn_params()
+        non_linear_coefs = energy_nn.estimate(nn_params)
+
+        approximate_duration = 1, 10
+        if self.min_duration is None or self.min_duration is None:
+            approximate_duration = duration_nn.estimate(nn_params)
+
+        min_duration = self.min_duration if self.min_duration is not None else approximate_duration[0]
+        max_duration = self.max_duration if self.max_duration is not None else approximate_duration[1]
         self.energy_profile_lines = piecewise_linearize(non_linear_coefs, min_duration, max_duration)
 
     def __str__(self):

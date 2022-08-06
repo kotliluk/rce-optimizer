@@ -15,7 +15,7 @@ Position neural network expects 6 inputs:
 
 PositionNNOutput = float
 """
-Movement neural network produces an  outputs 'p' which is a coefs of a linear approximation of position
+Movement neural network produces an outputs 'p' which is a coefficient of a linear approximation of position
 energy consumption.
 """
 
@@ -24,6 +24,9 @@ PositionNNLearningData = Tuple[PositionNNParams, PositionNNOutput]
 
 # TODO
 class PositionNN:
+    """
+    Neural network for approximation of position energy consumption.
+    """
     def __init__(self, nn: str = ''):
         self.nn = nn
 

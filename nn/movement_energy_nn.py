@@ -3,7 +3,7 @@ from typing import Tuple, List
 
 MovementNNParams = Tuple[float, float, float, float, float, float, float, float, float, float]
 """
-Movement neural network expects 10 inputs:
+Movement neural networks expects 10 inputs:
 
 - movement_length = 3D distance between start and end
 - height_change = vertical distance between start and end
@@ -17,21 +17,24 @@ Movement neural network expects 10 inputs:
 - input_power = input power of the robot
 """
 
-MovementNNOutput = Tuple[float, float, float, float]
+MovementEnergyNNOutput = Tuple[float, float, float, float]
 """
 Movement neural network produces 4 outputs 'a', 'b', 'c', 'd' which are coefs for a polynomial approximation
 of movement energy consumption.
 """
 
-MovementNNLearningData = Tuple[MovementNNParams, MovementNNOutput]
+MovementEnergyNNLearningData = Tuple[MovementNNParams, MovementEnergyNNOutput]
 
 
 # TODO
-class MovementNN:
+class MovementEnergyNN:
+    """
+    Neural network for polynomial approximation of movement energy consumption.
+    """
     def __init__(self, nn: str = ''):
         self.nn = nn
 
-    def learn(self, data: List[MovementNNLearningData]):
+    def learn(self, data: List[MovementEnergyNNLearningData]):
         self.nn = 'Learnt...'
 
     def get_nn(self) -> str:
@@ -40,5 +43,5 @@ class MovementNN:
     def set_nn(self, nn: str):
         self.nn = nn
 
-    def estimate(self, params: MovementNNParams) -> MovementNNOutput:
+    def estimate(self, params: MovementNNParams) -> MovementEnergyNNOutput:
         return 6, 0, 1, 1

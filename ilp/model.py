@@ -1,13 +1,14 @@
-import gurobipy as g
 from typing import Dict, List, Tuple
 
+import gurobipy as g
+
 from ilp.activity import StaticActivity, Activity, DynamicActivity
+from nn.movement_duration_nn import MovementDurationNN
+from nn.movement_energy_nn import MovementEnergyNN
 from nn.position_nn import PositionNN
-from nn.movement_nn import MovementNN
 from preprocessing.robot import Robot
 from utils.bad_input_file_error import BadInputFileError
 from utils.json import point3d_from_json, simple_movement_from_partial_json
-
 
 TimeOffset = Tuple[Activity, Activity, float]
 Collision = Tuple[Activity, Activity, g.Var]
@@ -17,9 +18,15 @@ class Model:
     """
     ILP model for energy consumption optimization wrapping Gurobi model.
     """
-    def __init__(self, position_nn: PositionNN, movement_nn: MovementNN):
+    def __init__(
+        self,
+        position_nn: PositionNN,
+        movement_energy_nn: MovementEnergyNN,
+        movement_duration_nn: MovementDurationNN,
+    ):
         self.position_nn = position_nn
-        self.movement_nn = movement_nn
+        self.movement_energy_nn = movement_energy_nn
+        self.movement_duration_nn = movement_duration_nn
         self.model = g.Model()
         self.cycle_time = 0
         self.robot_to_activities: Dict[str, List[Activity]] = dict()
@@ -165,7 +172,8 @@ class Model:
                 point3d_from_json(activity_json['end']),
                 payload_weight,
                 robot,
-                self.movement_nn,
+                self.movement_energy_nn,
+                self.movement_duration_nn,
             )
         elif movement_type == 'joint':
             dynamic_activity.compute_joint_energy_profile(
@@ -173,7 +181,8 @@ class Model:
                 point3d_from_json(activity_json['end']),
                 payload_weight,
                 robot,
-                self.movement_nn,
+                self.movement_energy_nn,
+                self.movement_duration_nn,
             )
         elif movement_type == 'compound':
             partial_movements = list(map(
@@ -188,7 +197,8 @@ class Model:
                 partial_movements,
                 payload_weight,
                 robot,
-                self.movement_nn,
+                self.movement_energy_nn,
+                self.movement_duration_nn,
             )
         else:
             raise BadInputFileError(

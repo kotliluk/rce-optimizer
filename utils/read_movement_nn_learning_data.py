@@ -1,18 +1,18 @@
 from typing import List, Dict
 
-from nn.movement_nn import MovementNNLearningData, MovementNNOutput
-from preprocessing.robot import Robot
+from nn.movement_energy_nn import MovementEnergyNNLearningData, MovementEnergyNNOutput
 from preprocessing.movement import LinearMovement, JointMovement, CompoundMovement, SimpleMovement
+from preprocessing.robot import Robot
 from utils.bad_input_file_error import BadInputFileError
 from utils.geometry_3d import Point3D
 from utils.str import remove_whitespaces
 
 
-def _parse_learning_output(parts: List[str]) -> MovementNNOutput:
+def _parse_learning_output(parts: List[str]) -> MovementEnergyNNOutput:
     return float(parts[1]), float(parts[2]), float(parts[3]), float(parts[4])
 
 
-def _parse_linear_movement(parts: List[str], robots: Dict[str, Robot]) -> MovementNNLearningData:
+def _parse_linear_movement(parts: List[str], robots: Dict[str, Robot]) -> MovementEnergyNNLearningData:
     """
     Expected line: 'linear', a, b, c, d, mass, robot id, start x, start y, start z, end x, end y, end z
     """
@@ -30,7 +30,7 @@ def _parse_linear_movement(parts: List[str], robots: Dict[str, Robot]) -> Moveme
     return movement.to_nn_params(), _parse_learning_output(parts)
 
 
-def _parse_joint_movement(parts: List[str], robots: Dict[str, Robot]) -> MovementNNLearningData:
+def _parse_joint_movement(parts: List[str], robots: Dict[str, Robot]) -> MovementEnergyNNLearningData:
     """
     Expected line: 'joint', a, b, c, d, mass, robot id, start x, start y, start z, end x, end y, end z
     """
@@ -48,7 +48,7 @@ def _parse_joint_movement(parts: List[str], robots: Dict[str, Robot]) -> Movemen
     return movement.to_nn_params(), _parse_learning_output(parts)
 
 
-def _parse_compound_movement(parts: List[str], robots: Dict[str, Robot]) -> MovementNNLearningData:
+def _parse_compound_movement(parts: List[str], robots: Dict[str, Robot]) -> MovementEnergyNNLearningData:
     """
     Expected line: 'compound', a, b, c, d, mass, robot id [, start x, start y, start z, end x, end y, end z, type]
     """
@@ -82,7 +82,7 @@ def _parse_compound_movement(parts: List[str], robots: Dict[str, Robot]) -> Move
     return movement.to_nn_params(), _parse_learning_output(parts)
 
 
-def _parse_file_line(line: str, robots: Dict[str, Robot]) -> MovementNNLearningData:
+def _parse_file_line(line: str, robots: Dict[str, Robot]) -> MovementEnergyNNLearningData:
     parts = remove_whitespaces(line).split(',')
 
     if parts[0] == 'linear':
@@ -95,7 +95,7 @@ def _parse_file_line(line: str, robots: Dict[str, Robot]) -> MovementNNLearningD
         raise BadInputFileError('Movement type must be "linear", "joint", or "compound", not "{}"'.format(parts[0]))
 
 
-def read_movement_nn_learning_data(filename: str, robots: Dict[str, Robot]) -> List[MovementNNLearningData]:
+def read_movement_nn_learning_data(filename: str, robots: Dict[str, Robot]) -> List[MovementEnergyNNLearningData]:
     """
     Reads given file with movements data and parses them into list.
     Expects first line to contain single integer value "count" of movements,
