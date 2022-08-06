@@ -1,12 +1,13 @@
 from abc import abstractmethod, ABC
-from scipy.integrate import quad as integral
-from numpy import sqrt, cos
 from typing import List
 
-from utils.geometry_3d import Point3D
+from numpy import sqrt, abs, sin
+from scipy.integrate import quad as integral
+
 import utils.geometry_3d as g3d
-from preprocessing.robot import Robot
 from nn.movement_nn import MovementNNParams
+from preprocessing.robot import Robot
+from utils.geometry_3d import Point3D
 
 
 class Movement(ABC):
@@ -91,10 +92,35 @@ class SimpleMovement(Movement, ABC):
     """
     def __init__(self, start: Point3D, end: Point3D, mass: float, robot: Robot):
         super().__init__(start, end, mass, robot)
+        self._start_vertical_angle = None
+        self._end_vertical_angle = None
         self._horizontal_angle = None
-        self._vertical_angle = None
+        self._signed_vertical_angle = None
+
+    def start_vertical_angle(self) -> float:
+        """
+        Returns starting angle relative to vertical line (z-axis).
+        """
+        if self._start_vertical_angle is None:
+            top_vector = Point3D(0, 0, 1)
+            self._start_vertical_angle = g3d.angle(top_vector, self.start - self.axis())
+
+        return self._start_vertical_angle
+
+    def end_vertical_angle(self) -> float:
+        """
+        Returns ending angle relative to vertical line (z-axis).
+        """
+        if self._end_vertical_angle is None:
+            top_vector = Point3D(0, 0, 1)
+            self._end_vertical_angle = g3d.angle(top_vector, self.end - self.axis())
+
+        return self._end_vertical_angle
 
     def horizontal_angle(self) -> float:
+        """
+        Returns absolute horizontal angular change.
+        """
         if self._horizontal_angle is None:
             start_vector = g3d.null_z(self.start - self.axis())
             end_vector = g3d.null_z(self.end - self.axis())
@@ -105,17 +131,20 @@ class SimpleMovement(Movement, ABC):
 
         return self._horizontal_angle
 
-    def vertical_angle(self) -> float:
-        if self._vertical_angle is None:
-            start_vector = self.start - self.axis()
-            end_vector = self.end - self.axis()
-            start_magnitude = start_vector.magnitude()
-            end_magnitude = end_vector.magnitude()
-            projected_start = Point3D(sqrt(start_magnitude**2 - start_vector.z**2), 0, start_vector.z)
-            projected_end = Point3D(sqrt(end_magnitude**2 - end_vector.z**2), 0, end_vector.z)
-            self._vertical_angle = g3d.angle(projected_start, projected_end)
+    def signed_vertical_angle(self) -> float:
+        """
+        Returns signed vertical angular change - positive when going down, negative when going up.
+        """
+        if self._signed_vertical_angle is None:
+            self._signed_vertical_angle = self.end_vertical_angle() - self.start_vertical_angle()
 
-        return self._vertical_angle
+        return self._signed_vertical_angle
+
+    def vertical_angle(self) -> float:
+        """
+        Returns absolute vertical angular change.
+        """
+        return abs(self.signed_vertical_angle())
 
 
 class LinearMovement(SimpleMovement):
@@ -164,31 +193,21 @@ class JointMovement(SimpleMovement):
             start_dist = g3d.distance(self.axis(), self.start)
             end_dist = g3d.distance(self.axis(), self.end)
             horizontal_angle = self.horizontal_angle()
-            vertical_angle = self.vertical_angle()
-
-            # TODO - does not work for:
-            # sqrt2inv = 1 / sqrt(2)
-            # start = Point3D(0, -sqrt2inv, -sqrt2inv)
-            # end = Point3D(0, sqrt2inv, sqrt2inv)
-            # or for
-            # start = Point3D(-sqrt2inv, 0, -sqrt2inv)
-            # end = Point3D(sqrt2inv, 0, sqrt2inv)
-            # returns 3.3295836107826746 instead of 3.141592653589793
-            # it works for
-            # start = Point3D(-sqrt2inv, -sqrt2inv, 0)
-            # end = Point3D(sqrt2inv, sqrt2inv, 0)
+            start_angle = self.start_vertical_angle()
+            signed_vertical_angle = self.signed_vertical_angle()
 
             def spherical_form_movement_length(t):
                 """
-                Movement parametrized in spherical form, i.e. x = r*sin(theta)*cos(phi), y = r*sin(theta)*sin(phi),
-                z = r*cos(phi) (where r, theta and phi are functions of t, 0 <= t <= 1) and transformed to length relation.
+                Movement parametrized in spherical form, i.e. t = r*sin(theta)*cos(phi), y = r*sin(theta)*sin(phi),
+                z = r*cos(theta) (where r, theta and phi are functions of t, 0 <= t <= 1) and transformed to
+                length relation.
                 """
                 r = (start_dist + (end_dist - start_dist) * t)
                 r_t_derivative = end_dist - start_dist
-                cos_theta = cos(horizontal_angle * t)
-                phi_t_derivative = vertical_angle
-                theta_t_derivative = horizontal_angle
-                return sqrt(r_t_derivative**2 + r**2 * cos_theta**2 * phi_t_derivative**2 + r**2 * theta_t_derivative**2)
+                sin_theta = sin(start_angle + signed_vertical_angle * t)
+                phi_t_derivative = horizontal_angle
+                theta_t_derivative = signed_vertical_angle
+                return sqrt(r_t_derivative**2 + sin_theta**2 * phi_t_derivative**2 + r**2 * theta_t_derivative**2)
 
             self._length = integral(spherical_form_movement_length, 0, 1)[0]
 
@@ -257,25 +276,19 @@ if __name__ == '__main__':
         # end = Point3D(sqrt2inv, 0, sqrt2inv)
         # start = Point3D(-sqrt2inv, -sqrt2inv, 0)
         # end = Point3D(sqrt2inv, sqrt2inv, 0)
+        # start = Point3D(0, 0, 1)
+        # end = Point3D(0, 0, -1)
+        start = Point3D(0, sqrt2inv, sqrt2inv)
+        end = Point3D(0, -sqrt2inv, sqrt2inv)
         # start = Point3D(1, 0, 0)
-        # end = Point3D(-2, 0, 0)
-        # start = Point3D(0, 1, 0)
-        # end = Point3D(0, -1, 0)
-        start = Point3D(0, 0, -1)
-        end = Point3D(0, 0, 1)
+        # end = Point3D(-1, 0, 0)
         mass = 10.5
         load_capacity = 30.0
         robot_weight = 260.0
         input_power = 2000
         robot = Robot('r_1', axis, robot_weight, load_capacity, input_power)
         joint = JointMovement(start, end, mass, robot)
-        print(joint.horizontal_angle())
-        print(joint.vertical_angle())
         print(joint.length())
-        # linear = LinearMovement(start, end, mass, robot)
-        # print(linear.horizontal_angle())
-        # print(linear.vertical_angle())
-        # print(linear.length())
 
     def compound_test():
         axis = Point3D(0, 0, 0)
@@ -304,5 +317,5 @@ if __name__ == '__main__':
         print('input_power', compound_movement.input_power())
         print('axis', compound_movement.axis())
 
-    # joint_length_test()
-    compound_test()
+    joint_length_test()
+    # compound_test()
