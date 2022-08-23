@@ -273,7 +273,7 @@ class Model:
     def _add_constr(self, constr):
         self.model.addConstr(constr)
 
-    def _add_var(self, lb=None, vtype=g.GRB.CONTINUOUS, name='') -> g.Var:
+    def _add_var(self, lb=0, vtype=g.GRB.CONTINUOUS, name='') -> g.Var:
         return self.model.addVar(lb=lb, vtype=vtype, name=name)
 
     def _add_activity_vars(self, activity: Activity):
