@@ -4,8 +4,12 @@ from nn.movement_energy_nn import MovementEnergyNN
 from nn.position_nn import PositionNN
 from utils.json import read_json_from_file, save_to_json_file
 
-input_filename = 'D:/Uloziste/Skola/DP/Algorithm/_test_inputs/robotic_cell_01.json'
-output_filename = 'D:/Uloziste/Skola/DP/Algorithm/_test_inputs/robotic_cell_01_result.json'
+BASE_PATH = 'D:/Uloziste/Skola/DP/Algorithm/rce-optimizer/_test_inputs'
+INPUT = '01'
+
+input_filename = '{}/robotic_cell_{}.json'.format(BASE_PATH, INPUT)
+output_filename = '{}/robotic_cell_{}_result.json'.format(BASE_PATH, INPUT)
+gantt_chart_filename = '{}/robotic_cell_{}_gantt_chart.png'.format(BASE_PATH, INPUT)
 
 movement_energy_nn = MovementEnergyNN()
 movement_duration_nn = MovementDurationNN()
@@ -23,3 +27,6 @@ for activity in model.activities.values():
 solution = model.solution_json_dict()
 print(solution)
 save_to_json_file(output_filename, solution)
+
+if gantt_chart_filename is not None:
+    model.create_gantt_chart(gantt_chart_filename, (10, 5))

@@ -118,8 +118,10 @@
       "a_id": "",
       // b_id: if of the second activity, string (required)
       "b_id": "",
-      // offset: minimal time between activities
-      "offset": 0.0
+      // min_offset: minimal time between activities' start times, float (optional)
+      "min_offset": 0.0,
+      // max_offset: maximal time between activities' start times, float (optional)
+      "max_offset": 0.0
     }
   ],
   // collisions: pairs of colliding activities, i.e. they cannot be executed at once, array of objects (optional)

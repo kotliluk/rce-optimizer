@@ -1,6 +1,7 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 
 import gurobipy as g
+import matplotlib.pyplot as plt
 
 from ilp.activity import StaticActivity, Activity, DynamicActivity
 from nn.movement_duration_nn import MovementDurationNN
@@ -10,7 +11,7 @@ from preprocessing.robot import Robot
 from utils.bad_input_file_error import BadInputFileError
 from utils.json import point3d_from_json, simple_movement_from_partial_json
 
-TimeOffset = Tuple[Activity, Activity, float]
+TimeOffset = Tuple[Activity, Activity, Optional[float], Optional[float]]
 Collision = Tuple[Activity, Activity, g.Var]
 
 
@@ -28,7 +29,8 @@ class Model:
         self.movement_energy_nn = movement_energy_nn
         self.movement_duration_nn = movement_duration_nn
         self.model = g.Model()
-        self.cycle_time = 0
+        self.input_cycle_time = 0
+        self.result_cycle_time: g.Var = self._add_var(lb=0, vtype=g.GRB.CONTINUOUS, name='result_cycle_time')
         self.robot_to_activities: Dict[str, List[Activity]] = dict()
         self.activities: Dict[str, Activity] = dict()
         self.time_offsets: List[TimeOffset] = []
@@ -38,14 +40,10 @@ class Model:
         """
         Loads data from given JSON dictionary. If the JSON does not contain required data, throws BadInputFileError.
         """
-        self.cycle_time = cell_json['cycle_time']
+        self.input_cycle_time = cell_json['cycle_time']
 
         for robot in cell_json.get('robots', []):
             self._process_robot(robot)
-
-        self._add_constr(
-            g.quicksum(list(map(lambda a: a.duration, self.activities.values()))) <= self.cycle_time
-        )
 
         for time_offset in cell_json.get('time_offsets', []):
             self._process_time_offset(time_offset)
@@ -70,22 +68,42 @@ class Model:
         Creates a dictionary with an optimization solution ready to be saved in a JSON file.
         """
         return {
-            'input_cycle_time': self.cycle_time,
-            'result_cycle_time': self.result_cycle_time(),
+            'input_cycle_time': self.input_cycle_time,
+            'result_cycle_time': self.result_cycle_time.x,
             'robots': [
                 {
                     'id': robot,
-                    'activities': [activity.solution_json_dict() for activity in self.robot_to_activities[robot]]
+                    'activities': [
+                        activity.solution_json_dict(self.result_cycle_time.x)
+                        for activity in self.robot_to_activities[robot]
+                    ]
                 }
                 for robot in self.robot_to_activities.keys()
             ]
         }
 
-    def result_cycle_time(self) -> float:
-        """
-        Returns cycle time computed in an optimization.
-        """
-        return sum(map(lambda a: a.duration.x, self.activities.values()))
+    def create_gantt_chart(self, gantt_filename: str, size: Optional[Tuple[float, float]] = None):
+        activities = list(self.activities.values())
+        activities.reverse()
+
+        fig, ax = plt.subplots(figsize=size)
+
+        # add first parts of activities
+        ax.barh(
+            list(map(lambda a: a.id, activities)),
+            list(map(lambda a: a.first_part_duration(self.result_cycle_time.x), activities)),
+            left=list(map(lambda _: 0, activities)),
+            color='b',
+        )
+        # add second parts of activities
+        ax.barh(
+            list(map(lambda a: a.id, activities)),
+            list(map(lambda a: a.second_part_duration(self.result_cycle_time.x), activities)),
+            left=list(map(lambda a: a.cycle_start_time(self.result_cycle_time.x), activities)),
+            color='b',
+        )
+
+        plt.savefig(gantt_filename)
 
     def _process_robot(self, robot_json: Dict):
         robot = Robot(
@@ -100,23 +118,16 @@ class Model:
             lambda activity_json: self._process_activity(activity_json, robot),
             robot_json['activities'],
         ))
-        # TODO - initial is always first?
-        activities[0].is_initial = True
-        self._add_constr(
-            activities[0].start_time == 0
-        )
 
         # add time constraints
+        self._add_constr(
+            g.quicksum(list(map(lambda a: a.duration, activities))) == self.result_cycle_time
+        )
         for i in range(len(activities) - 1):
             j = i + 1
-            if activities[j].is_initial:
-                self._add_constr(
-                    activities[i].start_time + activities[i].duration <= activities[j].start_time + self.cycle_time
-                )
-            else:
-                self._add_constr(
-                    activities[i].start_time + activities[i].duration <= activities[j].start_time
-                )
+            self._add_constr(
+                activities[i].start_time + activities[i].duration == activities[j].start_time
+            )
 
         # saves robot activities
         self.robot_to_activities[robot.id] = activities
@@ -231,28 +242,30 @@ class Model:
     def _process_time_offset(self, time_offset_json: Dict):
         a_id = time_offset_json['a_id']
         b_id = time_offset_json['b_id']
-        offset = time_offset_json['offset']
+        min_offset = time_offset_json['min_offset']
+        max_offset = time_offset_json['max_offset']
         a = self.activities[a_id]
         b = self.activities[b_id]
         # adds offset constraint
-        self._add_constr(
-            a.start_time + offset <= b.start_time
-        )
+        if min_offset is not None:
+            self._add_constr(a.start_time + min_offset <= b.start_time)
+        if max_offset is not None:
+            self._add_constr(b.start_time - max_offset <= a.start_time)
         # saves offset info
-        self.time_offsets.append((a, b, offset))
+        self.time_offsets.append((a, b, min_offset, max_offset))
 
     def _process_collision(self, collision_json: Dict):
         a_id = collision_json['a_id']
         b_id = collision_json['b_id']
         a = self.activities[a_id]
         b = self.activities[b_id]
-        x = self.model.addVar(vtype=g.GRB.BINARY, name='x_{}_{}'.format(a_id, b_id))
+        x = self._add_var(vtype=g.GRB.BINARY, name='x_{}_{}'.format(a_id, b_id))
         # adds collision resolution constraints
         self._add_constr(
-            a.start_time + a.duration <= b.start_time + (1 - x) * self.cycle_time
+            a.start_time + a.duration <= b.start_time + (1 - x) * self.input_cycle_time
         )
         self._add_constr(
-            b.start_time + b.duration <= a.start_time + x * self.cycle_time
+            b.start_time + b.duration <= a.start_time + x * self.input_cycle_time
         )
         # saves collision info
         self.collisions.append((a, b, x))
@@ -260,13 +273,16 @@ class Model:
     def _add_constr(self, constr):
         self.model.addConstr(constr)
 
+    def _add_var(self, lb=None, vtype=g.GRB.CONTINUOUS, name='') -> g.Var:
+        return self.model.addVar(lb=lb, vtype=vtype, name=name)
+
     def _add_activity_vars(self, activity: Activity):
-        activity.start_time = self.model.addVar(
+        activity.start_time = self._add_var(
             lb=0, vtype=g.GRB.CONTINUOUS, name='start_time_{}'.format(activity.id)
         )
-        activity.duration = self.model.addVar(
+        activity.duration = self._add_var(
             lb=0, vtype=g.GRB.CONTINUOUS, name='duration_{}'.format(activity.id)
         )
-        activity.energy = self.model.addVar(
+        activity.energy = self._add_var(
             lb=0, vtype=g.GRB.CONTINUOUS, name='energy_{}'.format(activity.id)
         )

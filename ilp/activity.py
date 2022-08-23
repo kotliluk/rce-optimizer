@@ -27,16 +27,48 @@ class Activity:
         self.duration: Optional[g.Var] = None
         self.energy: Optional[g.Var] = None
 
-    def solution_json_dict(self):
+    def cycle_start_time(self, cycle_time: float) -> float:
+        return self.start_time.x % cycle_time
+
+    def cycle_end_time(self, cycle_time: float) -> float:
+        result = (self.start_time.x + self.duration.x) % cycle_time
+        return result if result > 0 else cycle_time
+
+    def solution_json_dict(self, cycle_time: float):
         """
         Saves activity id and variables in a dictionary ready to be saved in a JSON file.
         """
         return {
             'id': self.id,
-            'start_time': self.start_time.x,
+            'start_time': self.cycle_start_time(cycle_time),
             'duration': self.duration.x,
+            'end_time': self.cycle_end_time(cycle_time),
             'energy': self.energy.x,
         }
+
+    def is_split(self, cycle_time: float) -> bool:
+        """
+        Returns whether the activity is split, i.e. it starts in one cycle and ends in the next one.
+        """
+        return self.cycle_end_time(cycle_time) < self.cycle_start_time(cycle_time)
+
+    def first_part_duration(self, cycle_time: float) -> float:
+        """
+        Returns duration of the first part (shifted to start in Gantt chart) of activity if the activity is split,
+        0 otherwise.
+        """
+        if self.is_split(cycle_time):
+            return self.cycle_end_time(cycle_time)
+        return 0
+
+    def second_part_duration(self, cycle_time: float) -> float:
+        """
+        Returns duration of the second part (in Gantt chart) of activity if the activity is split,
+        total duration otherwise.
+        """
+        if self.is_split(cycle_time):
+            return cycle_time - self.cycle_start_time(cycle_time)
+        return self.duration.x
 
     def __str__(self):
         return 'activity "{}"{}, VARS: s={}, d={}, e={}'.format(

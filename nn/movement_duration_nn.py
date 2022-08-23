@@ -4,7 +4,7 @@ from nn.movement_energy_nn import MovementNNParams
 
 MovementDurationNNOutput = Tuple[float, float]
 """
-Movement duration neural network produces 4 outputs 'min', 'max' which are approximate minimal and maximal durations
+Movement duration neural network produces 2 outputs 'min', 'max' which are approximate minimal and maximal durations
 of a movement.
 """
 
