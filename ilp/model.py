@@ -18,6 +18,11 @@ Collision = Tuple[Activity, Activity, g.Var]
 class Model:
     """
     ILP model for energy consumption optimization wrapping Gurobi model.
+
+    It uses (3*A + 1) real variables, C binary variables, less then (8*A + 2*T) linear constraints,
+    and 2*C quadratic constraints, where A is total number of activities, C is number of collision pairs,
+    T is number of relative time restrictions, i.e. number of variables and constraints is linear with
+    respect to problem size.
     """
     def __init__(
         self,
@@ -41,6 +46,9 @@ class Model:
         Loads data from given JSON dictionary. If the JSON does not contain required data, throws BadInputFileError.
         """
         self.input_cycle_time = cell_json['cycle_time']
+        self._add_constr(
+            self.result_cycle_time <= self.input_cycle_time
+        )
 
         for robot in cell_json.get('robots', []):
             self._process_robot(robot)
@@ -82,11 +90,14 @@ class Model:
             ]
         }
 
-    def create_gantt_chart(self, gantt_filename: str, size: Optional[Tuple[float, float]] = None):
+    def create_gantt_chart(self, gantt_filename: str, size: Tuple[float, float] = (10, 5)):
+        """
+        Creates a Gantt's chart of the solution and saves it in the given file.
+        """
         activities = list(self.activities.values())
-        activities.reverse()
 
         fig, ax = plt.subplots(figsize=size)
+        ax.invert_yaxis()
 
         # add first parts of activities
         ax.barh(
@@ -242,19 +253,32 @@ class Model:
     def _process_time_offset(self, time_offset_json: Dict):
         a_id = time_offset_json['a_id']
         b_id = time_offset_json['b_id']
-        min_offset = time_offset_json['min_offset']
-        max_offset = time_offset_json['max_offset']
+        min_offset = time_offset_json.get('min_offset')
+        max_offset = time_offset_json.get('max_offset')
         a = self.activities[a_id]
         b = self.activities[b_id]
         # adds offset constraint
         if min_offset is not None:
-            self._add_constr(a.start_time + min_offset <= b.start_time)
+            self._add_constr(
+                a.start_time + min_offset <= b.start_time
+            )
         if max_offset is not None:
-            self._add_constr(b.start_time - max_offset <= a.start_time)
+            self._add_constr(
+                a.start_time + max_offset >= b.start_time
+            )
         # saves offset info
         self.time_offsets.append((a, b, min_offset, max_offset))
 
     def _process_collision(self, collision_json: Dict):
+        """
+        Adds 2 quadratic constraints - remove result_cycle_time and use only input_cycle_time to not need them.
+
+        If a bug with collisions ever appears (there will be a collision in the Gantt's chart) it might be because of
+        cycle-time shift of start_times in model. It can be solved by adding "cycle_start_time" and "is_shifted"
+        variables for each activity used in collisions:
+          - 0 <= cycle_start_time <= result_cycle_time
+          - cycle_start_time == start_time - result_cycle_time * is_shifted   => more quadratic constraints
+        """
         a_id = collision_json['a_id']
         b_id = collision_json['b_id']
         a = self.activities[a_id]
@@ -262,27 +286,24 @@ class Model:
         x = self._add_var(vtype=g.GRB.BINARY, name='x_{}_{}'.format(a_id, b_id))
         # adds collision resolution constraints
         self._add_constr(
-            a.start_time + a.duration <= b.start_time + (1 - x) * self.input_cycle_time
+            a.start_time + a.duration <= b.start_time + (1 - x) * self.result_cycle_time
         )
         self._add_constr(
-            b.start_time + b.duration <= a.start_time + x * self.input_cycle_time
+            b.start_time + b.duration <= a.start_time + x * self.result_cycle_time
         )
         # saves collision info
         self.collisions.append((a, b, x))
+
+    def _add_activity_vars(self, activity: Activity):
+        activity.start_time = self._add_var(name='start_time_{}'.format(activity.id))
+        activity.duration = self._add_var(name='duration_{}'.format(activity.id))
+        activity.energy = self._add_var(name='energy_{}'.format(activity.id))
+        self._add_constr(
+            activity.start_time <= 2 * self.result_cycle_time
+        )
 
     def _add_constr(self, constr):
         self.model.addConstr(constr)
 
     def _add_var(self, lb=0, vtype=g.GRB.CONTINUOUS, name='') -> g.Var:
         return self.model.addVar(lb=lb, vtype=vtype, name=name)
-
-    def _add_activity_vars(self, activity: Activity):
-        activity.start_time = self._add_var(
-            lb=0, vtype=g.GRB.CONTINUOUS, name='start_time_{}'.format(activity.id)
-        )
-        activity.duration = self._add_var(
-            lb=0, vtype=g.GRB.CONTINUOUS, name='duration_{}'.format(activity.id)
-        )
-        activity.energy = self._add_var(
-            lb=0, vtype=g.GRB.CONTINUOUS, name='energy_{}'.format(activity.id)
-        )

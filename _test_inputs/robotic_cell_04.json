@@ -1,0 +1,58 @@
+{
+  "description": "Simple robotic cell with 3 robots with 2 static activities each and 3 collisions. Shows collision resolution problem with start time shifting by cycle time.",
+  "cycle_time": 6,
+  "robots": [
+    {
+      "id": "r_01",
+      "position": { "x": 1000.0, "y": 0.0, "z": 0.0 },
+      "weight": 200.0,
+      "load_capacity": 15.0,
+      "input_power": 2000.0,
+      "activities": [
+        {
+          "type": "static",
+          "id": "sa_01_01a",
+          "min_duration": 3,
+          "payload_weight": 0.0,
+          "position": { "x": 0.0, "y": 0.0, "z": 0.0 }
+        },
+        {
+          "type": "static",
+          "id": "sa_01_02a",
+          "min_duration": 1,
+          "payload_weight": 0.0,
+          "position": { "x": 0.0, "y": 0.0, "z": 0.0 }
+        }
+      ]
+    },
+    {
+      "id": "r_02",
+      "position": { "x": 3000.0, "y": 0.0, "z": 0.0 },
+      "weight": 200.0,
+      "load_capacity": 15.0,
+      "input_power": 2000.0,
+      "activities": [
+        {
+          "type": "static",
+          "id": "sa_02_01a",
+          "min_duration": 3,
+          "payload_weight": 0.0,
+          "position": { "x": 2000.0, "y": 0.0, "z": 0.0 }
+        },
+        {
+          "type": "static",
+          "id": "sa_02_02a",
+          "min_duration": 1,
+          "payload_weight": 0.0,
+          "position": { "x": 2000.0, "y": 0.0, "z": 0.0 }
+        }
+      ]
+    }
+  ],
+  "collisions": [
+    {
+      "a_id": "sa_01_01a",
+      "b_id": "sa_02_01a"
+    }
+  ]
+}

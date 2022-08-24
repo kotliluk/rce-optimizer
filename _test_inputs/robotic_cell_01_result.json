@@ -8,23 +8,23 @@
         {
           "id": "da_01",
           "start_time": 0.0,
-          "duration": 2.3180008988918175,
-          "end_time": 2.3180008988918175,
-          "energy": 4.292609786120201
+          "duration": 2.318,
+          "end_time": 2.318,
+          "energy": 4.29261
         },
         {
           "id": "sa_02",
-          "start_time": 2.3180008988918175,
+          "start_time": 2.318,
           "duration": 2.0,
-          "end_time": 4.3180008988918175,
+          "end_time": 4.318,
           "energy": 2.0
         },
         {
           "id": "da_03",
-          "start_time": 4.3180008988918175,
-          "duration": 2.3180008988918175,
-          "end_time": 6.636001797783635,
-          "energy": 4.292609786120201
+          "start_time": 4.318,
+          "duration": 2.318,
+          "end_time": 6.636,
+          "energy": 4.29261
         }
       ]
     }

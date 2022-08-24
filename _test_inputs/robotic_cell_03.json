@@ -1,5 +1,5 @@
 {
-  "description": "",
+  "description": "Simple robotic cell with 2 robot with 6 activities each - 2 dynamic and 4 static. With one collision and one time offset.",
   "cycle_time": 15,
   "robots": [
     {

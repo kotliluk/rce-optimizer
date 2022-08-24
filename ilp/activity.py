@@ -20,8 +20,6 @@ class Activity:
     """
     def __init__(self, id_: str):
         self.id = id_
-        # params
-        self.is_initial = False
         # vars
         self.start_time: Optional[g.Var] = None
         self.duration: Optional[g.Var] = None
@@ -40,10 +38,10 @@ class Activity:
         """
         return {
             'id': self.id,
-            'start_time': self.cycle_start_time(cycle_time),
-            'duration': self.duration.x,
-            'end_time': self.cycle_end_time(cycle_time),
-            'energy': self.energy.x,
+            'start_time': round(self.cycle_start_time(cycle_time), 3),
+            'duration': round(self.duration.x, 3),
+            'end_time': round(self.cycle_end_time(cycle_time), 3),
+            'energy': round(self.energy.x, 6),
         }
 
     def is_split(self, cycle_time: float) -> bool:
@@ -71,9 +69,8 @@ class Activity:
         return self.duration.x
 
     def __str__(self):
-        return 'activity "{}"{}, VARS: s={}, d={}, e={}'.format(
+        return 'activity "{}", VARS: s={}, d={}, e={}'.format(
             self.id,
-            ' (initial)' if self.is_initial else '',
             round(self.start_time.x, 3),
             round(self.duration.x, 3),
             round(self.energy.x, 3),

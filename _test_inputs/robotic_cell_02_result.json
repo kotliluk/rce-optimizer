@@ -22,30 +22,30 @@
         {
           "id": "da_01_02",
           "start_time": 4.0,
-          "duration": 2.3180008988918175,
-          "end_time": 6.3180008988918175,
-          "energy": 4.292609786120201
+          "duration": 2.318,
+          "end_time": 6.318,
+          "energy": 4.29261
         },
         {
           "id": "sa_01_03a",
-          "start_time": 6.3180008988918175,
+          "start_time": 6.318,
           "duration": 1.0,
-          "end_time": 7.3180008988918175,
+          "end_time": 7.318,
           "energy": 1.0
         },
         {
           "id": "sa_01_03b",
-          "start_time": 7.3180008988918175,
+          "start_time": 7.318,
           "duration": 1.0,
-          "end_time": 8.318000898891817,
+          "end_time": 8.318,
           "energy": 1.0
         },
         {
           "id": "da_01_04",
-          "start_time": 8.318000898891817,
-          "duration": 2.3180008988918175,
-          "end_time": 10.636001797783635,
-          "energy": 4.292609786120201
+          "start_time": 8.318,
+          "duration": 2.318,
+          "end_time": 10.636,
+          "energy": 4.29261
         }
       ]
     },
@@ -54,45 +54,45 @@
       "activities": [
         {
           "id": "sa_02_01a",
-          "start_time": 6.3180008988918175,
+          "start_time": 6.318,
           "duration": 1.0,
-          "end_time": 7.3180008988918175,
+          "end_time": 7.318,
           "energy": 1.0
         },
         {
           "id": "sa_02_01b",
-          "start_time": 7.3180008988918175,
+          "start_time": 7.318,
           "duration": 1.0,
-          "end_time": 8.318000898891817,
+          "end_time": 8.318,
           "energy": 1.0
         },
         {
           "id": "da_02_02",
-          "start_time": 8.318000898891817,
-          "duration": 4.139765958752398,
-          "end_time": 1.8217650598605815,
-          "energy": 5.406389793888342
+          "start_time": 8.318,
+          "duration": 2.496,
+          "end_time": 0.178,
+          "energy": 4.401578
         },
         {
           "id": "sa_02_03a",
-          "start_time": 1.8217650598605815,
+          "start_time": 0.178,
           "duration": 1.0,
-          "end_time": 2.8217650598605815,
+          "end_time": 1.178,
           "energy": 1.0
         },
         {
           "id": "sa_02_03b",
-          "start_time": 2.8217650598605815,
+          "start_time": 1.178,
           "duration": 1.0,
-          "end_time": 3.8217650598605815,
+          "end_time": 2.178,
           "energy": 1.0
         },
         {
           "id": "da_02_04",
-          "start_time": 3.8217650598605815,
-          "duration": 2.496235839031236,
-          "end_time": 6.3180008988918175,
-          "energy": 4.401578015551623
+          "start_time": 2.178,
+          "duration": 4.14,
+          "end_time": 6.318,
+          "energy": 5.40639
         }
       ]
     }
