@@ -19,7 +19,7 @@ Movement neural network produces an outputs 'p' which is a coefficient of a line
 energy consumption.
 """
 
-PositionNNLearningData = Tuple[PositionNNParams, PositionNNOutput]
+PositionNNTrainingData = Tuple[PositionNNParams, PositionNNOutput]
 
 
 # TODO
@@ -30,8 +30,8 @@ class PositionNN:
     def __init__(self, nn: str = ''):
         self.nn = nn
 
-    def learn(self, data: List[PositionNNLearningData]):
-        self.nn = 'Learnt...'
+    def train(self, data: List[PositionNNTrainingData]):
+        self.nn = 'Trained...'
 
     def get_nn(self) -> str:
         return self.nn

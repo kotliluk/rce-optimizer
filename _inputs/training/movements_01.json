@@ -1,0 +1,121 @@
+{
+  "robots": [
+    {
+      "id": "r_01",
+      "position": { "x": 100, "y": 200, "z": 0 },
+      "weight": 240.3,
+      "load_capacity": 15.0,
+      "input_power": 2050.0
+    }
+  ],
+  "movements": [
+    {
+      "movement_type": "linear",
+      "energy_4_coefs": [
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "energy_3_coefs": [
+        1.0,
+        2.0,
+        3.0
+      ],
+      "min_max_duration": [
+        1.0,
+        8.0
+      ],
+      "robot_id": "r_01",
+      "mass": 15.0,
+      "start": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "end": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "movement_type": "joint",
+      "energy_4_coefs": [
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "energy_3_coefs": [
+        1.0,
+        2.0,
+        3.0
+      ],
+      "min_max_duration": [
+        1.0,
+        8.0
+      ],
+      "robot_id": "r_01",
+      "mass": 15.0,
+      "start": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "end": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "movement_type": "compound",
+      "energy_4_coefs": [
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "energy_3_coefs": [
+        1.0,
+        2.0,
+        3.0
+      ],
+      "min_max_duration": [
+        1.0,
+        8.0
+      ],
+      "robot_id": "r_01",
+      "mass": 15.0,
+      "parts": [
+        {
+          "movement_type": "linear",
+          "start": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "end": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          }
+        },
+        {
+          "movement_type": "joint",
+          "start": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "end": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          }
+        }
+      ]
+    }
+  ]
+}

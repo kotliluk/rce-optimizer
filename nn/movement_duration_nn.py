@@ -1,6 +1,6 @@
 from typing import Tuple, List
 
-from nn.movement_energy_nn import MovementNNParams
+from preprocessing.movement import Movement
 
 MovementDurationNNOutput = Tuple[float, float]
 """
@@ -8,7 +8,7 @@ Movement duration neural network produces 2 outputs 'min', 'max' which are appro
 of a movement.
 """
 
-MovementDurationNNLearningData = Tuple[MovementNNParams, MovementDurationNNOutput]
+MovementDurationNNTrainingData = Tuple[Movement, MovementDurationNNOutput]
 
 
 # TODO
@@ -19,8 +19,8 @@ class MovementDurationNN:
     def __init__(self, nn: str = ''):
         self.nn = nn
 
-    def learn(self, data: List[MovementDurationNNLearningData]):
-        self.nn = 'Learnt...'
+    def train(self, data: List[MovementDurationNNTrainingData]):
+        self.nn = 'Trained...'
 
     def get_nn(self) -> str:
         return self.nn
@@ -28,5 +28,5 @@ class MovementDurationNN:
     def set_nn(self, nn: str):
         self.nn = nn
 
-    def estimate(self, params: MovementNNParams) -> MovementDurationNNOutput:
+    def estimate(self, movement: Movement) -> MovementDurationNNOutput:
         return 1, 10

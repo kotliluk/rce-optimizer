@@ -1,5 +1,0 @@
-3
-type,     a, b, c, d, mass, robot id, trajectory description...
-joint,    1, 2, 3, 4, 4.56, r_01,     122, 8,  607,  453, 52, 607
-linear,   1, 2, 3, 4, 4.56, r_01,     453, 52, 607,  453, 52, 211
-compound, 1, 2, 3, 4, 4.56, r_01,     122, 8,  607,  453, 52, 607, joint,   453, 52, 607,  453, 52, 211, linear

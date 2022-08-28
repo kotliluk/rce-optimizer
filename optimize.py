@@ -4,7 +4,7 @@ from nn.movement_energy_nn import MovementEnergyNN
 from nn.position_nn import PositionNN
 from utils.json import read_json_from_file, save_to_json_file
 
-BASE_PATH = 'D:/Uloziste/Skola/DP/Algorithm/rce-optimizer/_test_inputs'
+BASE_PATH = 'D:/Uloziste/Skola/DP/Algorithm/rce-optimizer/_inputs/optimization'
 INPUT = '04'
 
 input_filename = '{}/robotic_cell_{}.json'.format(BASE_PATH, INPUT)

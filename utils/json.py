@@ -46,3 +46,13 @@ def simple_movement_from_partial_json(
         raise BadInputFileError(
             'Partial movement type must be "linear" or "joint", not {}'.format(movement_type)
         )
+
+
+def robot_from_json(robot_json: Dict) -> Robot:
+    return Robot(
+        robot_json['id'],
+        point3d_from_json(robot_json['position']),
+        robot_json['weight'],
+        robot_json['load_capacity'],
+        robot_json['input_power'],
+    )

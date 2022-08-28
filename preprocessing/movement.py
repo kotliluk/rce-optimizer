@@ -5,12 +5,13 @@ from numpy import sqrt, abs, sin
 from scipy.integrate import quad as integral
 
 import utils.geometry_3d as g3d
-from nn.movement_energy_nn import MovementNNParams
 from preprocessing.robot import Robot
 from utils.geometry_3d import Point3D
 
 
 class Movement(ABC):
+    # TODO - return normalized params
+
     def __init__(self, start: Point3D, end: Point3D, mass: float, robot: Robot):
         self.start = start
         self.end = end
@@ -56,6 +57,9 @@ class Movement(ABC):
     def mass(self) -> float:
         return self._mass
 
+    def max_load(self) -> float:
+        return self.robot.load_capacity
+
     def load_ratio(self) -> float:
         return self._mass / self.robot.load_capacity
 
@@ -68,22 +72,51 @@ class Movement(ABC):
     def input_power(self) -> float:
         return self.robot.input_power
 
+    def start_distance(self):
+        projected_axis = g3d.null_z(self.axis())
+        projected_start = g3d.null_z(self.start)
+        return g3d.distance(projected_axis, projected_start)
+
+    def end_distance(self):
+        projected_axis = g3d.null_z(self.axis())
+        projected_end = g3d.null_z(self.end)
+        return g3d.distance(projected_axis, projected_end)
+
+    def margin_distance(self):
+        return (self.start_distance() + self.end_distance()) / 2
+
     def axis(self) -> Point3D:
         return self.robot.axis
 
-    def to_nn_params(self) -> MovementNNParams:
-        return (
-            self.length(),
-            self.height_change(),
-            self.horizontal_angle(),
-            self.vertical_angle(),
-            self.avg_distance_from_axe(),
-            self.mass(),
-            self.load_ratio(),
-            self.robot_weight(),
-            self.gravitational_torque(),
-            self.input_power()
-        )
+    def get_nn_param(self, param: str) -> float:
+        if param == 'movement_length':
+            return self.length()
+        if param == 'height_change':
+            return self.height_change()
+        if param == 'horizontal_angle':
+            return self.horizontal_angle()
+        if param == 'vertical_angle':
+            return self.vertical_angle()
+        if param == 'average_distance':
+            return self.avg_distance_from_axe()
+        if param == 'mass':
+            return self.mass()
+        if param == 'max_load':
+            return self.max_load()
+        if param == 'load_ratio':
+            return self.load_ratio()
+        if param == 'robot_weight':
+            return self.robot_weight()
+        if param == 'gravitational_pseudo_torque':
+            return self.gravitational_torque()
+        if param == 'input_power':
+            return self.input_power()
+        if param == 'start_distance':
+            return self.start_distance()
+        if param == 'end_distance':
+            return self.end_distance()
+        if param == 'margin_distance':
+            return self.margin_distance()
 
 
 class SimpleMovement(Movement, ABC):
