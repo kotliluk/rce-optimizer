@@ -1,6 +1,6 @@
 {
   "name": "nn_01",
-  "description": "",
+  "description": "Neural network for movement duration estimation",
   "parameters": [
     "movement_length",
     "height_change",
@@ -14,5 +14,5 @@
     "input_power"
   ],
   "hidden_layers": [],
-  "outputs": 4
+  "outputs": 2
 }

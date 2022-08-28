@@ -1,17 +1,6 @@
 from typing import Tuple, List
 
-
-PositionNNParams = Tuple[float, float, float, float, float, float]
-"""
-Position neural network expects 6 inputs:
-
-- distance_from_axe = 2D distance between position and axis
-- mass = mass of the payload
-- load_ratio = ratio of mass and robot load capacity
-- robot_weight = weight of the robot
-- gravitational_pseudo_torque = approximate torque affecting vertically (distance_from_axe * mass)
-- input_power = input power of the robot
-"""
+from preprocessing.position import Position
 
 PositionNNOutput = float
 """
@@ -19,7 +8,7 @@ Movement neural network produces an outputs 'p' which is a coefficient of a line
 energy consumption.
 """
 
-PositionNNTrainingData = Tuple[PositionNNParams, PositionNNOutput]
+PositionNNTrainingData = Tuple[Position, PositionNNOutput]
 
 
 # TODO
@@ -39,5 +28,5 @@ class PositionNN:
     def set_nn(self, nn: str):
         self.nn = nn
 
-    def estimate(self, params: PositionNNParams) -> PositionNNOutput:
+    def estimate(self, params: Position) -> PositionNNOutput:
         return 1

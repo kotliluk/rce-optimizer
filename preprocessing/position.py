@@ -1,7 +1,6 @@
-from utils.geometry_3d import Point3D
 import utils.geometry_3d as g3d
 from preprocessing.robot import Robot
-from nn.position_nn import PositionNNParams
+from utils.geometry_3d import Point3D
 
 
 class Position:
@@ -22,6 +21,9 @@ class Position:
     def mass(self) -> float:
         return self._mass
 
+    def max_load(self) -> float:
+        return self.robot.load_capacity
+
     def load_ratio(self) -> float:
         return self._mass / self.robot.load_capacity
 
@@ -37,12 +39,18 @@ class Position:
     def axis(self) -> Point3D:
         return self.robot.axis
 
-    def to_nn_params(self) -> PositionNNParams:
-        return (
-            self.distance_from_axe(),
-            self.mass(),
-            self.load_ratio(),
-            self.robot_weight(),
-            self.gravitational_torque(),
-            self.input_power()
-        )
+    def get_nn_param(self, param: str) -> float:
+        if param == 'distance_from_axe':
+            return self.distance_from_axe()
+        if param == 'mass':
+            return self.mass()
+        if param == 'max_load':
+            return self.max_load()
+        if param == 'load_ratio':
+            return self.load_ratio()
+        if param == 'robot_weight':
+            return self.robot_weight()
+        if param == 'gravitational_pseudo_torque':
+            return self.gravitational_torque()
+        if param == 'input_power':
+            return self.input_power()

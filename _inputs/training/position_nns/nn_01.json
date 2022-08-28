@@ -1,0 +1,14 @@
+{
+  "name": "nn_01",
+  "description": "Neural network for position energy estimation",
+  "parameters": [
+    "distance_from_axe",
+    "mass",
+    "load_ratio",
+    "robot_weight",
+    "gravitational_pseudo_torque",
+    "input_power"
+  ],
+  "hidden_layers": [],
+  "outputs": 1
+}
