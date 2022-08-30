@@ -39,20 +39,13 @@ def simple_movement_from_partial_json(
     robot: Robot,
 ) -> SimpleMovement:
     movement_type = partial_movement_json['movement_type']
+    start = partial_movement_json['start']
+    end = partial_movement_json['end']
+
     if movement_type == 'linear':
-        return LinearMovement(
-            point3d_from_json(partial_movement_json['start']),
-            point3d_from_json(partial_movement_json['end']),
-            payload_weight,
-            robot,
-        )
+        return LinearMovement(start, end, payload_weight, robot)
     elif movement_type == 'joint':
-        return JointMovement(
-            point3d_from_json(partial_movement_json['start']),
-            point3d_from_json(partial_movement_json['end']),
-            payload_weight,
-            robot,
-        )
+        return JointMovement(start, end, payload_weight, robot)
     else:
         raise BadInputFileError(
             'Partial movement type must be "linear" or "joint", not {}'.format(movement_type)

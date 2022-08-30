@@ -1,0 +1,2 @@
+class UnsupportedParameterError(Exception):
+    pass

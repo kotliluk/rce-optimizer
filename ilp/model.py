@@ -7,6 +7,7 @@ from ilp.activity import StaticActivity, Activity, DynamicActivity
 from nn.movement_duration_nn import MovementDurationNN
 from nn.movement_energy_nn import MovementEnergyNN
 from nn.position_nn import PositionNN
+from preprocessing.movement import LinearMovement, JointMovement, CompoundMovement
 from preprocessing.robot import Robot
 from utils.bad_input_file_error import BadInputFileError
 from utils.json import point3d_from_json, simple_movement_from_partial_json
@@ -183,45 +184,51 @@ class Model:
     def _process_dynamic_activity(self, activity_json: Dict, robot: Robot) -> DynamicActivity:
         # add activity params
         dynamic_activity = DynamicActivity(activity_json['id'])
-        dynamic_activity.min_duration = activity_json.get('min_duration')
-        dynamic_activity.max_duration = activity_json.get('max_duration')
 
+        given_min = activity_json.get('min_duration')
+        given_max = activity_json.get('max_duration')
         movement_type = activity_json['movement_type']
         payload_weight = activity_json['payload_weight']
+
         if movement_type == 'linear':
-            dynamic_activity.compute_linear_energy_profile(
-                point3d_from_json(activity_json['start']),
-                point3d_from_json(activity_json['end']),
-                payload_weight,
-                robot,
-                self.movement_energy_nn,
-                self.movement_duration_nn,
-            )
-        elif movement_type == 'joint':
-            dynamic_activity.compute_joint_energy_profile(
-                point3d_from_json(activity_json['start']),
-                point3d_from_json(activity_json['end']),
-                payload_weight,
-                robot,
-                self.movement_energy_nn,
-                self.movement_duration_nn,
-            )
-        elif movement_type == 'compound':
-            partial_movements = list(map(
-                lambda partial_movement_json: simple_movement_from_partial_json(
-                    partial_movement_json,
+            dynamic_activity.set_movement(
+                LinearMovement(
+                    point3d_from_json(activity_json['start']),
+                    point3d_from_json(activity_json['end']),
                     payload_weight,
                     robot,
-                ),
+                )
+            )
+            dynamic_activity.compute_min_max_duration(given_min, given_max, self.movement_duration_nn)
+            dynamic_activity.compute_energy_profile(self.movement_energy_nn)
+
+        elif movement_type == 'joint':
+            dynamic_activity.set_movement(
+                JointMovement(
+                    point3d_from_json(activity_json['start']),
+                    point3d_from_json(activity_json['end']),
+                    payload_weight,
+                    robot,
+                )
+            )
+            dynamic_activity.compute_min_max_duration(given_min, given_max, self.movement_duration_nn)
+            dynamic_activity.compute_energy_profile(self.movement_energy_nn)
+
+        elif movement_type == 'compound':
+            partial_movements = list(map(
+                lambda json: simple_movement_from_partial_json(json, payload_weight, robot),
                 activity_json['partial_movements'],
             ))
-            dynamic_activity.compute_compound_energy_profile(
-                partial_movements,
-                payload_weight,
-                robot,
-                self.movement_energy_nn,
-                self.movement_duration_nn,
+            dynamic_activity.set_movement(
+                CompoundMovement(
+                    partial_movements,
+                    payload_weight,
+                    robot,
+                )
             )
+            dynamic_activity.compute_min_max_duration(given_min, given_max, self.movement_duration_nn)
+            dynamic_activity.compute_energy_profile(self.movement_energy_nn)
+
         else:
             raise BadInputFileError(
                 'Movement type must be "linear", "joint" or "compound", not {}'.format(movement_type)
@@ -230,17 +237,13 @@ class Model:
         # add activity variables
         self._add_activity_vars(dynamic_activity)
 
-        # if minimal duration is specified, constraints the duration
-        if dynamic_activity.min_duration is not None:
-            self._add_constr(
-                dynamic_activity.min_duration <= dynamic_activity.duration,
-            )
-
-        # if maximal duration is specified, constraints the duration
-        if dynamic_activity.max_duration is not None:
-            self._add_constr(
-                dynamic_activity.duration <= dynamic_activity.max_duration,
-            )
+        # every dynamic activity has constrained minimal and maximal duration (with given or estimated values)
+        self._add_constr(
+            dynamic_activity.min_duration <= dynamic_activity.duration,
+        )
+        self._add_constr(
+            dynamic_activity.duration <= dynamic_activity.max_duration,
+        )
 
         # computes activity energy consumption
         for line in dynamic_activity.energy_profile_lines:
@@ -277,7 +280,7 @@ class Model:
         cycle-time shift of start_times in model. It can be solved by adding "cycle_start_time" and "is_shifted"
         variables for each activity used in collisions:
           - 0 <= cycle_start_time <= result_cycle_time
-          - cycle_start_time == start_time - result_cycle_time * is_shifted   => more quadratic constraints
+          - cycle_start_time == start_time - result_cycle_time * is_shifted   => possibly more quadratic constraints
         """
         a_id = collision_json['a_id']
         b_id = collision_json['b_id']

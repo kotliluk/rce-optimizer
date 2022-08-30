@@ -29,11 +29,10 @@ class Point3D:
         return sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
 
 
-def middle_point(a: Point3D, b: Point3D) -> Point3D:
-    return (a + b) / 2
-
-
 def distance(a: Point3D, b: Point3D) -> float:
+    """
+    Computes euclidean distance between given points.
+    """
     dx = (a.x - b.x)
     dy = (a.y - b.y)
     dz = (a.z - b.z)

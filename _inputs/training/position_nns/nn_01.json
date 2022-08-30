@@ -2,7 +2,7 @@
   "name": "nn_01",
   "description": "Neural network for position energy estimation",
   "parameters": [
-    "distance_from_axe",
+    "distance_from_axis",
     "mass",
     "load_ratio",
     "robot_weight",

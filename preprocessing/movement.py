@@ -6,28 +6,28 @@ from scipy.integrate import quad as integral
 
 import utils.geometry_3d as g3d
 from preprocessing.robot import Robot
+from preprocessing.robot_activity import RobotActivity
 from utils.geometry_3d import Point3D
 
 
-class Movement(ABC):
+class Movement(RobotActivity):
     # TODO - return normalized params
 
     def __init__(self, start: Point3D, end: Point3D, mass: float, robot: Robot):
+        super().__init__(mass, robot)
         self.start = start
         self.end = end
-        self._mass = mass
-        self.robot = robot
 
     @abstractmethod
     def length(self) -> float:
         """
-        Computes movement length.
+        Computes movement length (in millimeters).
         """
         pass
 
     def height_change(self) -> float:
         """
-        Computes signed height change (change of 'z' coordinate).
+        Computes signed height change (change of 'z' coordinate) (in millimeters).
         """
         return self.end.z - self.start.z
 
@@ -47,48 +47,46 @@ class Movement(ABC):
         pass
 
     @abstractmethod
-    def avg_distance_from_axe(self) -> float:
+    def avg_distance_from_axis(self) -> float:
         """
-        Computes average distance from axis to movement.
+        Computes average distance from axis to movement (in millimeters).
         Uses 2D projection, i.e. only 'x' and 'y' coordinates.
         """
         pass
 
-    def mass(self) -> float:
-        return self._mass
-
-    def max_load(self) -> float:
-        return self.robot.load_capacity
-
-    def load_ratio(self) -> float:
-        return self._mass / self.robot.load_capacity
-
-    def robot_weight(self) -> float:
-        return self.robot.weight
-
     def gravitational_torque(self) -> float:
-        return self.avg_distance_from_axe() * self._mass
-
-    def input_power(self) -> float:
-        return self.robot.input_power
+        """
+        Return simplified average gravitational torque to the payload during the movement (in millimeters * kilograms).
+        """
+        return self.avg_distance_from_axis() * self._mass
 
     def start_distance(self):
+        """
+        Returns payload distance from robot axis at the beginning of the movement (in millimeters).
+        """
         projected_axis = g3d.null_z(self.axis())
         projected_start = g3d.null_z(self.start)
         return g3d.distance(projected_axis, projected_start)
 
     def end_distance(self):
+        """
+        Returns payload distance from robot axis at the end of the movement (in millimeters).
+        """
         projected_axis = g3d.null_z(self.axis())
         projected_end = g3d.null_z(self.end)
         return g3d.distance(projected_axis, projected_end)
 
     def margin_distance(self):
+        """
+        Returns average payload distance from robot axis at the beginning and at the end of the movement
+        (in millimeters).
+        """
         return (self.start_distance() + self.end_distance()) / 2
 
-    def axis(self) -> Point3D:
-        return self.robot.axis
-
     def get_nn_param(self, param: str) -> float:
+        """
+        Returns given parameter value. Raises UnsupportedParameterError if the parameter is not supported.
+        """
         if param == 'movement_length':
             return self.length()
         if param == 'height_change':
@@ -98,32 +96,32 @@ class Movement(ABC):
         if param == 'vertical_angle':
             return self.vertical_angle()
         if param == 'average_distance':
-            return self.avg_distance_from_axe()
-        if param == 'mass':
-            return self.mass()
-        if param == 'max_load':
-            return self.max_load()
-        if param == 'load_ratio':
-            return self.load_ratio()
-        if param == 'robot_weight':
-            return self.robot_weight()
+            return self.avg_distance_from_axis()
         if param == 'gravitational_pseudo_torque':
             return self.gravitational_torque()
-        if param == 'input_power':
-            return self.input_power()
         if param == 'start_distance':
             return self.start_distance()
         if param == 'end_distance':
             return self.end_distance()
         if param == 'margin_distance':
             return self.margin_distance()
+        return super().get_nn_param(param)
 
 
 class SimpleMovement(Movement, ABC):
     """
-    Implementation of common methods of linear and joint movements.
+    Linear or joint movement. Can be used as a partial movement in CompoundMovement.
     """
+
     def __init__(self, start: Point3D, end: Point3D, mass: float, robot: Robot):
+        """
+        Creates a new simple movement.
+
+        :param start: starting 3D coordinates in millimeters
+        :param end: ending 3D coordinates in millimeters
+        :param mass: payload mass during the movement in kilograms
+        :param robot: robot of the movement
+        """
         super().__init__(start, end, mass, robot)
         self._start_vertical_angle = None
         self._end_vertical_angle = None
@@ -182,9 +180,17 @@ class SimpleMovement(Movement, ABC):
 
 class LinearMovement(SimpleMovement):
     def __init__(self, start: Point3D, end: Point3D, mass: float, robot: Robot):
+        """
+        Creates a new linear movement.
+
+        :param start: starting 3D coordinates in millimeters
+        :param end: ending 3D coordinates in millimeters
+        :param mass: payload mass during the movement in kilograms
+        :param robot: robot of the movement
+        """
         super().__init__(start, end, mass, robot)
         self._length = None
-        self._avg_distance_from_axe = None
+        self._avg_distance_from_axis = None
 
     def length(self) -> float:
         if self._length is None:
@@ -192,8 +198,8 @@ class LinearMovement(SimpleMovement):
 
         return self._length
 
-    def avg_distance_from_axe(self) -> float:
-        if self._avg_distance_from_axe is None:
+    def avg_distance_from_axis(self) -> float:
+        if self._avg_distance_from_axis is None:
             def parametrized_distance(t):
                 """
                 Distance between axis and parametrized definition of line segment.
@@ -202,9 +208,9 @@ class LinearMovement(SimpleMovement):
                 y_part = (self.start.y + (self.end.y - self.start.y)*t - self.axis().y)**2
                 return sqrt(x_part + y_part)
 
-            self._avg_distance_from_axe = integral(parametrized_distance, 0, 1)[0]
+            self._avg_distance_from_axis = integral(parametrized_distance, 0, 1)[0]
 
-        return self._avg_distance_from_axe
+        return self._avg_distance_from_axis
 
     def __str__(self):
         return 'Linear movement from {} to {} of robot {} with {}kg payload'.format(
@@ -217,9 +223,17 @@ class LinearMovement(SimpleMovement):
 
 class JointMovement(SimpleMovement):
     def __init__(self, start: Point3D, end: Point3D, mass: float, robot: Robot):
+        """
+        Creates a new joint movement.
+
+        :param start: starting 3D coordinates in millimeters
+        :param end: ending 3D coordinates in millimeters
+        :param mass: payload mass during the movement in kilograms
+        :param robot: robot of the movement
+        """
         super().__init__(start, end, mass, robot)
         self._length = None
-        self._avg_distance_from_axe = None
+        self._avg_distance_from_axis = None
 
     def length(self) -> float:
         if self._length is None:
@@ -246,15 +260,15 @@ class JointMovement(SimpleMovement):
 
         return self._length
 
-    def avg_distance_from_axe(self) -> float:
-        if self._avg_distance_from_axe is None:
+    def avg_distance_from_axis(self) -> float:
+        if self._avg_distance_from_axis is None:
             projected_axis = g3d.null_z(self.axis())
             projected_start = g3d.null_z(self.start)
             projected_end = g3d.null_z(self.end)
-            self._avg_distance_from_axe = (g3d.distance(projected_axis, projected_start) +
+            self._avg_distance_from_axis = (g3d.distance(projected_axis, projected_start) +
                                            g3d.distance(projected_start, projected_end)) / 2
 
-        return self._avg_distance_from_axe
+        return self._avg_distance_from_axis
 
     def __str__(self):
         return 'Joint movement from {} to {} of robot {} with {}kg payload'.format(
@@ -267,13 +281,20 @@ class JointMovement(SimpleMovement):
 
 class CompoundMovement(Movement):
     def __init__(self, parts: List[SimpleMovement], mass: float, robot: Robot):
+        """
+        Creates a new joint movement.
+
+        :param parts: list of partial simple movements
+        :param mass: payload mass during the movement in kilograms
+        :param robot: robot of the movement
+        """
         assert len(parts) > 0
 
         super().__init__(parts[0].start, parts[-1].end, mass, robot)
         self._length = None
         self._horizontal_angle = None
         self._vertical_angle = None
-        self._avg_distance_from_axe = None
+        self._avg_distance_from_axis = None
         self._parts = parts
 
     def length(self) -> float:
@@ -285,8 +306,8 @@ class CompoundMovement(Movement):
     def vertical_angle(self) -> float:
         return sum(map(lambda part: part.vertical_angle(), self._parts))
 
-    def avg_distance_from_axe(self) -> float:
-        return sum(map(lambda part: part.avg_distance_from_axe() * part.length(), self._parts)) / self.length()
+    def avg_distance_from_axis(self) -> float:
+        return sum(map(lambda part: part.avg_distance_from_axis() * part.length(), self._parts)) / self.length()
 
     def __str__(self):
         a = 'Compound movement from {} to {} of robot {} with {}kg payload through points '.format(
@@ -342,7 +363,7 @@ if __name__ == '__main__':
         print('height_change', compound_movement.height_change())
         print('horizontal_angle', compound_movement.horizontal_angle())
         print('vertical_angle', compound_movement.vertical_angle())
-        print('avg_distance_from_axe', compound_movement.avg_distance_from_axe())
+        print('avg_distance_from_axis', compound_movement.avg_distance_from_axis())
         print('mass', compound_movement.mass())
         print('load_ratio', compound_movement.load_ratio())
         print('robot_weight', compound_movement.robot_weight())
