@@ -35,8 +35,7 @@ class Model:
         self.movement_energy_nn = movement_energy_nn
         self.movement_duration_nn = movement_duration_nn
         self.model = g.Model()
-        self.input_cycle_time = 0
-        self.result_cycle_time: g.Var = self._add_var(lb=0, vtype=g.GRB.CONTINUOUS, name='result_cycle_time')
+        self.cycle_time = 0
         self.robot_to_activities: Dict[str, List[Activity]] = dict()
         self.activities: Dict[str, Activity] = dict()
         self.time_offsets: List[TimeOffset] = []
@@ -46,10 +45,7 @@ class Model:
         """
         Loads data from given JSON dictionary. If the JSON does not contain required data, throws BadInputFileError.
         """
-        self.input_cycle_time = cell_json['cycle_time']
-        self._add_constr(
-            self.result_cycle_time <= self.input_cycle_time
-        )
+        self.cycle_time = cell_json['cycle_time']
 
         for robot in cell_json.get('robots', []):
             self._process_robot(robot)
@@ -76,14 +72,14 @@ class Model:
         """
         Creates a dictionary with an optimization solution ready to be saved in a JSON file.
         """
+        # TODO - save result energy
         return {
-            'input_cycle_time': self.input_cycle_time,
-            'result_cycle_time': self.result_cycle_time.x,
+            'cycle_time': self.cycle_time,
             'robots': [
                 {
                     'id': robot,
                     'activities': [
-                        activity.solution_json_dict(self.result_cycle_time.x)
+                        activity.solution_json_dict(self.cycle_time)
                         for activity in self.robot_to_activities[robot]
                     ]
                 }
@@ -103,15 +99,15 @@ class Model:
         # add first parts of activities
         ax.barh(
             list(map(lambda a: a.id, activities)),
-            list(map(lambda a: a.first_part_duration(self.result_cycle_time.x), activities)),
+            list(map(lambda a: a.first_part_duration(self.cycle_time), activities)),
             left=list(map(lambda _: 0, activities)),
             color='b',
         )
         # add second parts of activities
         ax.barh(
             list(map(lambda a: a.id, activities)),
-            list(map(lambda a: a.second_part_duration(self.result_cycle_time.x), activities)),
-            left=list(map(lambda a: a.cycle_start_time(self.result_cycle_time.x), activities)),
+            list(map(lambda a: a.second_part_duration(self.cycle_time), activities)),
+            left=list(map(lambda a: a.cycle_start_time(self.cycle_time), activities)),
             color='b',
         )
 
@@ -133,7 +129,7 @@ class Model:
 
         # add time constraints
         self._add_constr(
-            g.quicksum(list(map(lambda a: a.duration, activities))) == self.result_cycle_time
+            g.quicksum(list(map(lambda a: a.duration, activities))) == self.cycle_time
         )
         for i in range(len(activities) - 1):
             j = i + 1
@@ -274,13 +270,11 @@ class Model:
 
     def _process_collision(self, collision_json: Dict):
         """
-        Adds 2 quadratic constraints - remove result_cycle_time and use only input_cycle_time to not need them.
-
         If a bug with collisions ever appears (there will be a collision in the Gantt's chart) it might be because of
         cycle-time shift of start_times in model. It can be solved by adding "cycle_start_time" and "is_shifted"
         variables for each activity used in collisions:
-          - 0 <= cycle_start_time <= result_cycle_time
-          - cycle_start_time == start_time - result_cycle_time * is_shifted   => possibly more quadratic constraints
+          - 0 <= cycle_start_time <= cycle_time
+          - cycle_start_time == start_time - cycle_time * is_shifted   => possibly more quadratic constraints
         """
         a_id = collision_json['a_id']
         b_id = collision_json['b_id']
@@ -289,10 +283,10 @@ class Model:
         x = self._add_var(vtype=g.GRB.BINARY, name='x_{}_{}'.format(a_id, b_id))
         # adds collision resolution constraints
         self._add_constr(
-            a.start_time + a.duration <= b.start_time + (1 - x) * self.result_cycle_time
+            a.start_time + a.duration <= b.start_time + (1 - x) * self.cycle_time
         )
         self._add_constr(
-            b.start_time + b.duration <= a.start_time + x * self.result_cycle_time
+            b.start_time + b.duration <= a.start_time + x * self.cycle_time
         )
         # saves collision info
         self.collisions.append((a, b, x))
@@ -302,7 +296,7 @@ class Model:
         activity.duration = self._add_var(name='duration_{}'.format(activity.id))
         activity.energy = self._add_var(name='energy_{}'.format(activity.id))
         self._add_constr(
-            activity.start_time <= 2 * self.result_cycle_time
+            activity.start_time <= 2 * self.cycle_time
         )
 
     def _add_constr(self, constr):
