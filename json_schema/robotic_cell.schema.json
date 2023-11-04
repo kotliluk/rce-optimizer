@@ -50,6 +50,9 @@
                 },
                 {
                   "$ref": "#/$defs/WorkActivity"
+                },
+                {
+                  "$ref": "#/$defs/IdlingActivity"
                 }
               ]
             }
@@ -75,11 +78,11 @@
             "type": "string"
           },
           "min_offset": {
-            "description": "Minimal time between activities' start times",
+            "description": "Minimal time between activities' start times (optional)",
             "type": "number"
           },
           "max_offset": {
-            "description": "Maximal time between activities' start times",
+            "description": "Maximal time between activities' start times (optional)",
             "type": "number"
           }
         },

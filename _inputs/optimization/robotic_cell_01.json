@@ -1,0 +1,56 @@
+{
+  "cycle_time": 10.0,
+  "note": "One robot, move-work-move",
+  "robots": [
+    {
+      "id": "r01",
+      "position": { "x": 0.0, "y": 0.0, "z": 0.0 },
+      "min_activities_duration": 8.0,
+      "activities": [
+        {
+          "type": "IDLE",
+          "id": "r01_a01_idle",
+          "position": { "x": 0.0, "y": 500.0, "z": 500.0 }
+        },
+        {
+          "type": "MOVEMENT",
+          "id": "r01_a02_move",
+          "min_duration": 1.0,
+          "max_duration": 4.0,
+          "start": { "x": 0.0, "y": 500.0, "z": 500.0 },
+          "end": { "x": 400.0, "y": 400.0, "z": 100.0 }
+        },
+        {
+          "type": "IDLE",
+          "id": "r01_a03_idle",
+          "position": { "x": 400.0, "y": 400.0, "z": 100.0 }
+        },
+        {
+          "type": "WORK",
+          "id": "r01_a04_work",
+          "duration": 5.0,
+          "start": { "x": 400.0, "y": 400.0, "z": 100.0 },
+          "end": { "x": 400.0, "y": -400.0, "z": 100.0 }
+        },
+        {
+          "type": "IDLE",
+          "id": "r01_a05_idle",
+          "position": { "x": 400.0, "y": -400.0, "z": 100.0 }
+        },
+        {
+          "type": "MOVEMENT",
+          "id": "r01_a06_move",
+          "min_duration": 2.0,
+          "max_duration": 7.0,
+          "start": { "x": 400.0, "y": -400.0, "z": 100.0 },
+          "end": { "x": 0.0, "y": 500.0, "z": 500.0 }
+        },
+        {
+          "type": "IDLE",
+          "id": "r01_a07_idle",
+          "position": { "x": 0.0, "y": 500.0, "z": 500.0 }
+        }
+      ]
+    }
+  ]
+}
