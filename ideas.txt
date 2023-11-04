@@ -1,0 +1,6 @@
+- consider STAND-BY mode (its minimal duration, means more binary variables)
+- consider compound movements
+- consider linear movements
+- consider robot and payload weight
+- consider "split" activities - starts in one cycle time and ends in another
+- consider cycle time as variable (means quadratic model)

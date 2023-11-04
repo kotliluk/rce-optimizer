@@ -1,4 +1,5 @@
 {
+  // TODO
   // cycle_time: maximum cycle time, float (required)
   "cycle_time": 0.0,
   // robots: description of individual robots, array of objects (required)

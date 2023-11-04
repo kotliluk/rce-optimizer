@@ -11,6 +11,10 @@
       "description": "Maximum cycle time",
       "type": "number"
     },
+    "note": {
+      "description": "Note (optional)",
+      "type": "string"
+    },
 
     "robots": {
       "description": "Description of individual robots",
@@ -23,24 +27,13 @@
             "description": "Unique robot identifier",
             "type": "string"
           },
+          "note": {
+            "description": "Note (optional)",
+            "type": "string"
+          },
           "position": {
             "description": "Position of robot in cartesian coordinates",
             "$ref": "#/$defs/Position"
-          },
-          "weight": {
-            "description": "Robot weight in kilograms",
-            "type": "number",
-            "inclusiveMinimum": 0
-          },
-          "load_capacity": {
-            "description": "Robot maximal loading capacity in kilograms",
-            "type": "number",
-            "inclusiveMinimum": 0
-          },
-          "input_power": {
-            "description": "Robot input power in Watts",
-            "type": "number",
-            "inclusiveMinimum": 0
           },
           "activities": {
             "description": "Sequence of robot activities",
@@ -49,13 +42,10 @@
             "items": {
               "oneOf": [
                 {
-                  "$ref": "#/$defs/StaticActivity"
+                  "$ref": "#/$defs/MovementActivity"
                 },
                 {
-                  "$ref": "#/$defs/SimpleDynamicActivity"
-                },
-                {
-                  "$ref": "#/$defs/CompoundDynamicActivity"
+                  "$ref": "#/$defs/WorkActivity"
                 }
               ]
             }
@@ -136,141 +126,122 @@
       }
     },
 
-    "StaticActivity": {
-      "description": "Static activity, i.e. activity in one place without considered movement",
+    "MovementActivity": {
+      "description": "PTP movement (it is a subject of the optimization)",
       "type": "object",
       "properties": {
         "type": {
-          "description": "Static activity type",
+          "description": "Activity type",
           "type": "string",
-          "pattern": "^static$"
+          "pattern": "^MOVEMENT$"
         },
         "id": {
           "description": "Unique identifier among all activities",
           "type": "string"
         },
-        "min_duration": {
-          "description": "Minimal duration of an activity (optional)",
-          "type": "number",
-          "inclusiveMinimum": 0
-        },
-        "payload_weight": {
-          "description": "Payload weight during an activity",
-          "type": "number",
-          "inclusiveMinimum": 0
-        },
-        "position": {
-          "description": "Position of robot's tool/payload in cartesian coordinates",
-          "$ref": "#/$defs/Position"
-        }
-      },
-      "required": [ "type", "id", "payload_weight", "position" ]
-    },
-
-    "SimpleDynamicActivity": {
-      "description": "Dynamic activity with simple (linear or joint) trajectory, i.e. activity without considered movement",
-      "type": "object",
-      "properties": {
-        "type": {
-          "description": "Dynamic activity type",
-          "type": "string",
-          "pattern": "^dynamic$"
-        },
-        "id": {
-          "description": "Unique identifier among all activities",
+        "note": {
+          "description": "Note (optional)",
           "type": "string"
         },
-        "movement_type": {
-          "description": "Simple movement type",
-          "type": "string",
-          "pattern": "^linear$|^joint$"
-        },
         "min_duration": {
-          "description": "Minimal duration of an activity (optional), if not given, it is estimated from other activity info",
+          "description": "Minimal duration of an activity",
           "type": "number",
           "inclusiveMinimum": 0
         },
         "max_duration": {
-          "description": "Maximal duration of an activity (optional), if not given, it is estimated from other activity info",
-          "type": "number",
-          "inclusiveMinimum": 0
-        },
-        "payload_weight": {
-          "description": "Payload weight during an activity",
+          "description": "Maximal duration of an activity",
           "type": "number",
           "inclusiveMinimum": 0
         },
         "start": {
-          "description": "Starting position of robot's tool/payload in cartesian coordinates",
+          "description": "Starting position of robot's tool in cartesian coordinates",
           "$ref": "#/$defs/Position"
         },
         "end": {
-          "description": "Ending position of robot's tool/payload in cartesian coordinates",
+          "description": "Ending position of robot's tool in cartesian coordinates",
           "$ref": "#/$defs/Position"
+        },
+        "fixed_start_time": {
+          "description": "Fixed start time of the movement (optional)",
+          "type": "number",
+          "inclusiveMinimum": 0
+        },
+        "fixed_end_time": {
+          "description": "Fixed end time of the movement (optional)",
+          "type": "number",
+          "inclusiveMinimum": 0
         }
       },
-      "required": [ "type", "id", "movement_type", "payload_weight", "start", "end" ]
+      "required": [ "type", "id", "min_duration", "max_duration", "start", "end" ]
     },
 
-    "CompoundDynamicActivity": {
-      "description": "Dynamic activity with compound trajectory, i.e. activity without considered movement",
+    "WorkActivity": {
+      "description": "Work (or another fixed) activity (it is NOT a subject of optimization)",
       "type": "object",
       "properties": {
         "type": {
-          "description": "Dynamic activity type",
+          "description": "Activity type",
           "type": "string",
-          "pattern": "^dynamic$"
+          "pattern": "^WORK$"
         },
         "id": {
           "description": "Unique identifier among all activities",
           "type": "string"
         },
-        "movement_type": {
-          "description": "Compound movement type",
-          "type": "string",
-          "pattern": "^compound$"
+        "note": {
+          "description": "Note (optional)",
+          "type": "string"
         },
-        "min_duration": {
-          "description": "Minimal duration of an activity (optional), if not given, it is estimated from other activity info",
+        "duration": {
+          "description": "Fixed duration of a work activity",
           "type": "number",
           "inclusiveMinimum": 0
         },
-        "max_duration": {
-          "description": "Maximal duration of an activity (optional), if not given, it is estimated from other activity info",
+        "start": {
+          "description": "Starting position of robot's tool in cartesian coordinates",
+          "$ref": "#/$defs/Position"
+        },
+        "end": {
+          "description": "Ending position of robot's tool in cartesian coordinates",
+          "$ref": "#/$defs/Position"
+        },
+        "fixed_start_time": {
+          "description": "Fixed start time of the movement (optional)",
           "type": "number",
           "inclusiveMinimum": 0
         },
-        "payload_weight": {
-          "description": "Payload weight during an activity",
+        "fixed_end_time": {
+          "description": "Fixed end time of the movement (optional)",
           "type": "number",
           "inclusiveMinimum": 0
-        },
-        "partial_movements": {
-          "description": "Particular partial linear/joint movements of compound activity",
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "object",
-            "properties": {
-              "start": {
-                "description": "Starting position of robot's tool/payload in partial movement in cartesian coordinates",
-                "$ref": "#/$defs/Position"
-              },
-              "end": {
-                "description": "Ending position of robot's tool/payload in partial movement in cartesian coordinates",
-                "$ref": "#/$defs/Position"
-              },
-              "movement_type": {
-                "description": "Simple movement type",
-                "type": "string",
-                "pattern": "^linear$|^joint$"
-              }
-            },
-            "required": [ "start", "end" ]
-          }
         }
       },
-      "required": [ "type", "id", "movement_type", "payload_weight", "start", "end" ]
+      "required": [ "type", "id", "duration", "start", "end" ]
+    },
+
+    "IdlingActivity": {
+      "description": "Idling possibility in between other activities (it is a subject of the optimization)",
+      "type": "object",
+      "properties": {
+        "type": {
+          "description": "Activity type",
+          "type": "string",
+          "pattern": "^IDLE$"
+        },
+        "id": {
+          "description": "Unique identifier among all activities",
+          "type": "string"
+        },
+        "note": {
+          "description": "Note (optional)",
+          "type": "string"
+        },
+        "position": {
+          "description": "Position of robot's tool in cartesian coordinates",
+          "$ref": "#/$defs/Position"
+        }
+      },
+      "required": [ "type", "id", "position" ]
     }
   }
 }
