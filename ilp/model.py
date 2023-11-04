@@ -87,18 +87,10 @@ class Model:
         fig, ax = plt.subplots(figsize=size)
         ax.invert_yaxis()
 
-        # add first parts of activities
         ax.barh(
             list(map(lambda a: a.id, activities)),
-            list(map(lambda a: a.first_part_duration(self.cycle_time), activities)),
-            left=list(map(lambda _: 0, activities)),
-            color='b',
-        )
-        # add second parts of activities
-        ax.barh(
-            list(map(lambda a: a.id, activities)),
-            list(map(lambda a: a.second_part_duration(self.cycle_time), activities)),
-            left=list(map(lambda a: a.cycle_start_time(self.cycle_time), activities)),
+            list(map(lambda a: a.duration.x, activities)),
+            left=list(map(lambda a: a.start_time.x, activities)),
             color='b',
         )
 
@@ -110,8 +102,10 @@ class Model:
             point3d_from_json(robot_json['position']),
         )
 
+        min_activities_duration = robot_json['min_activities_duration']
+
         activities: List[Activity] = list(map(
-            lambda activity_json: self._process_activity(activity_json, robot),
+            lambda activity_json: self._process_activity(activity_json, robot, min_activities_duration),
             robot_json['activities'],
         ))
 
@@ -132,14 +126,14 @@ class Model:
         self.robot_to_activities[robot.id] = activities
         self.activities.update({a.id: a for a in activities})
 
-    def _process_activity(self, activity_json: Dict, robot: Robot) -> Activity:
+    def _process_activity(self, activity_json: Dict, robot: Robot, min_activities_duration: float) -> Activity:
         activity_type = activity_json['type']
         if activity_type == 'WORK':
             return self._process_work_activity(activity_json)
         elif activity_type == 'MOVEMENT':
             return self._process_movement_activity(activity_json, robot)
         elif activity_type == 'IDLE':
-            return self._process_idle_activity(activity_json)
+            return self._process_idle_activity(activity_json, min_activities_duration)
         else:
             raise BadInputFileError('Activity type must be "MOVEMENT", "WORK" or "IDLE", not {}'.format(activity_type))
 
@@ -222,7 +216,7 @@ class Model:
 
         return movement_activity
 
-    def _process_idle_activity(self, activity_json: Dict) -> IdleActivity:
+    def _process_idle_activity(self, activity_json: Dict, min_activities_duration: float) -> IdleActivity:
         idle_activity = IdleActivity(activity_json['id'])
 
         # add activity variables
@@ -233,8 +227,7 @@ class Model:
             0 <= idle_activity.duration,
         )
         self._add_constr(
-            # TODO - compute more precise upper limit?
-            idle_activity.duration <= self.cycle_time,
+            idle_activity.duration <= self.cycle_time - min_activities_duration,
         )
 
         # computes activity energy consumption

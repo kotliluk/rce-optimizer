@@ -35,6 +35,10 @@
             "description": "Position of robot in cartesian coordinates",
             "$ref": "#/$defs/Position"
           },
+          "min_activities_duration": {
+            "description": "Minimal possible time of all activities of the robot (sum of durations and min_durations)",
+            "type": "number"
+          },
           "activities": {
             "description": "Sequence of robot activities",
             "type": "array",
@@ -51,7 +55,7 @@
             }
           }
         },
-        "required": [ "id", "position", "weight", "load_capacity", "input_power", "activities" ]
+        "required": [ "id", "position", "min_activities_duration", "activities" ]
       }
     },
 
