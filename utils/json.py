@@ -25,6 +25,8 @@ def robot_from_json(robot_json: Dict) -> Robot:
     return Robot(
         robot_json['id'],
         point3d_from_json(robot_json['position']),
+        robot_json['weight'],
+        robot_json['maximum_reach'],
     )
 
 
@@ -33,4 +35,5 @@ def joint_movement_from_json(json_dict: Dict, robot: Robot) -> Movement:
         point3d_from_json(json_dict['start']),
         point3d_from_json(json_dict['end']),
         robot,
+        json_dict['payload_weight'],
     )

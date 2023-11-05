@@ -35,6 +35,14 @@
             "description": "Position of robot in cartesian coordinates",
             "$ref": "#/$defs/Position"
           },
+          "weight": {
+            "description": "Weight of the robot (in kilograms)",
+            "type": "number"
+          },
+          "maximum_reach": {
+            "description": "Maximum horizontal reach of the robot (in millimeters)",
+            "type": "number"
+          },
           "min_activities_duration": {
             "description": "Minimal possible time of all activities of the robot (sum of durations and min_durations)",
             "type": "number"
@@ -58,7 +66,7 @@
             }
           }
         },
-        "required": [ "id", "position", "min_activities_duration", "activities" ]
+        "required": [ "id", "position", "weight", "maximum_reach", "min_activities_duration", "activities" ]
       }
     },
 
@@ -119,15 +127,15 @@
       "type": "object",
       "properties": {
         "x": {
-          "description": "X coordinate",
+          "description": "X coordinate (in millimeters)",
           "type": "number"
         },
         "y": {
-          "description": "Y coordinate",
+          "description": "Y coordinate (in millimeters)",
           "type": "number"
         },
         "z": {
-          "description": "Z coordinate",
+          "description": "Z coordinate (in millimeters)",
           "type": "number"
         }
       }
@@ -175,6 +183,11 @@
         },
         "fixed_end_time": {
           "description": "Fixed end time of the movement (optional)",
+          "type": "number",
+          "inclusiveMinimum": 0
+        },
+        "payload_weight": {
+          "description": "Weight of the payload (optional, default: 0)",
           "type": "number",
           "inclusiveMinimum": 0
         }
@@ -246,6 +259,11 @@
         "position": {
           "description": "Position of robot's tool in cartesian coordinates",
           "$ref": "#/$defs/Position"
+        },
+        "payload_weight": {
+          "description": "Weight of the payload (optional, default: 0)",
+          "type": "number",
+          "inclusiveMinimum": 0
         }
       },
       "required": [ "type", "id", "position" ]

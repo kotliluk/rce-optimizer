@@ -10,9 +10,9 @@ class Activity:
     Base class for activity representation in ILP model.
     It stores activity id, type and variables.
     """
-    def __init__(self, id_: str, type_: str):
-        self.id = id_
-        self.type = type_
+    def __init__(self, activity_id: str, activity_type: str):
+        self.id = activity_id
+        self.type = activity_type
         # vars
         self.start_time: Optional[g.Var] = None
         self.duration: Optional[g.Var] = None
@@ -54,13 +54,13 @@ class IdleActivity(Activity):
     Class for idle representation in ILP model.
     Adds storing of idle activity ILP parameters: piecewise-linearized energy consumption profile.
     """
-    def __init__(self, id_: str):
-        super().__init__(id_, 'IDLE')
+    def __init__(self, activity_id: str):
+        super().__init__(activity_id, 'IDLE')
         # params
         self.energy_profile_lines: List[Line2D] = []
 
-    def set_energy_profile(self, energy_profile_lines_: List[Line2D]):
-        self.energy_profile_lines = energy_profile_lines_
+    def set_energy_profile(self, energy_profile_lines: List[Line2D]):
+        self.energy_profile_lines = energy_profile_lines
 
     def __str__(self):
         super_str = super().__str__()
@@ -78,22 +78,22 @@ class MovementActivity(Activity):
     """
     def __init__(
         self,
-        id_: str,
-        min_duration_: float,
-        max_duration_: float,
-        fixed_start_time_: Optional[float],
-        fixed_end_time_: Optional[float],
+        activity_id: str,
+        min_duration: float,
+        max_duration: float,
+        fixed_start_time: Optional[float],
+        fixed_end_time: Optional[float],
     ):
-        super().__init__(id_, 'MOVEMENT')
+        super().__init__(activity_id, 'MOVEMENT')
         # params
-        self.min_duration: float = min_duration_
-        self.max_duration: float = max_duration_
-        self.fixed_start_time: Optional[float] = fixed_start_time_
-        self.fixed_end_time: Optional[float] = fixed_end_time_
+        self.min_duration: float = min_duration
+        self.max_duration: float = max_duration
+        self.fixed_start_time: Optional[float] = fixed_start_time
+        self.fixed_end_time: Optional[float] = fixed_end_time
         self.energy_profile_lines: List[Line2D] = []
 
-    def set_energy_profile(self, energy_profile_lines_: List[Line2D]):
-        self.energy_profile_lines = energy_profile_lines_
+    def set_energy_profile(self, energy_profile_lines: List[Line2D]):
+        self.energy_profile_lines = energy_profile_lines
 
     def __str__(self):
         super_str = super().__str__()
@@ -115,16 +115,16 @@ class WorkActivity(Activity):
     """
     def __init__(
         self,
-        id_: str,
-        fixed_duration_: float,
-        fixed_start_time_: Optional[float],
-        fixed_end_time_: Optional[float],
+        activity_id: str,
+        fixed_duration: float,
+        fixed_start_time: Optional[float],
+        fixed_end_time: Optional[float],
     ):
-        super().__init__(id_, 'WORK')
+        super().__init__(activity_id, 'WORK')
         # params
-        self.fixed_duration: float = fixed_duration_
-        self.fixed_start_time: Optional[float] = fixed_start_time_
-        self.fixed_end_time: Optional[float] = fixed_end_time_
+        self.fixed_duration: float = fixed_duration
+        self.fixed_start_time: Optional[float] = fixed_start_time
+        self.fixed_end_time: Optional[float] = fixed_end_time
 
     def __str__(self):
         super_str = super().__str__()

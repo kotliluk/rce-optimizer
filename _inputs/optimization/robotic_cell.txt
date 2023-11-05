@@ -12,6 +12,10 @@
       "position": { "x": 0.0, "y": 0.0, "z": 0.0 },
       // Minimal possible time of all activities of the robot (sum of durations and min_durations)
       "min_activities_duration": 0.0,
+      // Weight of the robot (in kilograms)
+      "weight": 0.0,
+      // Maximum horizontal reach of the robot (in millimeters)
+      "maximum_reach": 0.0,
 
       // Sequence of robot activities
       "activities": [
@@ -26,6 +30,9 @@
 
           // Position of robot's tool in cartesian coordinates
           "position": { "x": 0.0, "y": 0.0, "z": 0.0 },
+
+          // Weight of the payload (optional, default: 0)
+          "payload_weight": 0.0
         },
         {
           // Activity type
@@ -46,7 +53,10 @@
           // Fixed start time of the movement (optional)
           "fixed_start_time": 0.0,
           // Fixed end time of the movement (optional)
-          "fixed_end_time": 0.0
+          "fixed_end_time": 0.0,
+
+          // Weight of the payload (optional, default: 0)
+          "payload_weight": 0.0
         },
         {
           // Activity type
@@ -59,6 +69,9 @@
 
           // Position of robot's tool in cartesian coordinates
           "position": { "x": 0.0, "y": 0.0, "z": 0.0 },
+
+          // Weight of the payload (optional, default: 0)
+          "payload_weight": 0.0
         },
         {
           // Activity type
@@ -90,6 +103,9 @@
 
           // Position of robot's tool in cartesian coordinates
           "position": { "x": 0.0, "y": 0.0, "z": 0.0 },
+
+          // Weight of the payload (optional, default: 0)
+          "payload_weight": 0.0
         }
       ]
     }

@@ -2,5 +2,6 @@
 - consider compound movements
 - consider linear movements
 - consider robot and payload weight
+- consider movement joint parameters
 - consider "split" activities - starts in one cycle time and ends in another
 - consider cycle time as variable (means quadratic model)

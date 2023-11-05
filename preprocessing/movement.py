@@ -9,10 +9,11 @@ from utils.geometry_3d import Point3D
 
 
 class Movement:
-    def __init__(self, start: Point3D, end: Point3D, robot: Robot):
-        self.robot = robot
+    def __init__(self, start: Point3D, end: Point3D, robot: Robot, payload_weight: float = 0.0):
         self.start = start
         self.end = end
+        self.robot = robot
+        self.payload_weight = payload_weight
 
     def axis(self) -> Point3D:
         """
@@ -66,17 +67,13 @@ class Movement:
         """
         Returns payload distance from robot axis at the beginning of the movement (in millimeters).
         """
-        projected_axis = g3d.null_z(self.axis())
-        projected_start = g3d.null_z(self.start)
-        return g3d.distance(projected_axis, projected_start)
+        return g3d.null_z_distance(self.axis(), self.start)
 
     def end_distance(self):
         """
         Returns payload distance from robot axis at the end of the movement (in millimeters).
         """
-        projected_axis = g3d.null_z(self.axis())
-        projected_end = g3d.null_z(self.end)
-        return g3d.distance(projected_axis, projected_end)
+        return g3d.null_z_distance(self.axis(), self.end)
 
     def margin_distance(self):
         """
@@ -91,7 +88,7 @@ class SimpleMovement(Movement, ABC):
     Linear or joint movement. Can be used as a partial movement in CompoundMovement.
     """
 
-    def __init__(self, start: Point3D, end: Point3D, robot: Robot):
+    def __init__(self, start: Point3D, end: Point3D, robot: Robot, payload_weight: float = 0.0):
         """
         Creates a new simple movement.
 
@@ -99,7 +96,7 @@ class SimpleMovement(Movement, ABC):
         :param end: ending 3D coordinates in millimeters
         :param robot: robot of the movement
         """
-        super().__init__(start, end, robot)
+        super().__init__(start, end, robot, payload_weight)
         self._start_vertical_angle = None
         self._end_vertical_angle = None
         self._horizontal_angle = None
@@ -156,7 +153,7 @@ class SimpleMovement(Movement, ABC):
 
 
 class JointMovement(SimpleMovement):
-    def __init__(self, start: Point3D, end: Point3D, robot: Robot):
+    def __init__(self, start: Point3D, end: Point3D, robot: Robot, payload_weight: float = 0.0):
         """
         Creates a new joint movement.
 
@@ -164,7 +161,7 @@ class JointMovement(SimpleMovement):
         :param end: ending 3D coordinates in millimeters
         :param robot: robot of the movement
         """
-        super().__init__(start, end, robot)
+        super().__init__(start, end, robot, payload_weight)
         self._length = None
         self._avg_distance_from_axis = None
 
@@ -195,11 +192,8 @@ class JointMovement(SimpleMovement):
 
     def avg_distance_from_axis(self) -> float:
         if self._avg_distance_from_axis is None:
-            projected_axis = g3d.null_z(self.axis())
-            projected_start = g3d.null_z(self.start)
-            projected_end = g3d.null_z(self.end)
-            self._avg_distance_from_axis = (g3d.distance(projected_axis, projected_start) +
-                                           g3d.distance(projected_start, projected_end)) / 2
+            self._avg_distance_from_axis = (g3d.null_z_distance(self.axis(), self.start) +
+                                            g3d.null_z_distance(self.axis(), self.end)) / 2
 
         return self._avg_distance_from_axis
 
@@ -226,7 +220,7 @@ if __name__ == '__main__':
         end = Point3D(0, -sqrt2inv, sqrt2inv)
         # start = Point3D(1, 0, 0)
         # end = Point3D(-1, 0, 0)
-        robot = Robot('r_1', axis)
+        robot = Robot('r_1', axis, 400.0, 4000.0)
         joint = JointMovement(start, end, robot)
         print(joint.length())
 

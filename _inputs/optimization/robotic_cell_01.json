@@ -1,10 +1,12 @@
 {
   "cycle_time": 10.0,
-  "note": "One robot, move-work-move",
+  "note": "One robot, move-work-move, no payload",
   "robots": [
     {
       "id": "r01",
       "position": { "x": 0.0, "y": 0.0, "z": 0.0 },
+      "weight": 400.0,
+      "maximum_reach": 750.0,
       "min_activities_duration": 8.0,
       "activities": [
         {

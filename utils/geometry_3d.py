@@ -52,3 +52,10 @@ def null_z(a: Point3D) -> Point3D:
     Creates a new point with the same 'x' and 'y' coordinates but 0 'z'.
     """
     return Point3D(a.x, a.y, 0)
+
+
+def null_z_distance(a: Point3D, b: Point3D) -> float:
+    """
+    Computes euclidean distance between given points with null 'z' axis.
+    """
+    return distance(null_z(a), null_z(b))

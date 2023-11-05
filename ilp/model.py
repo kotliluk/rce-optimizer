@@ -100,6 +100,8 @@ class Model:
         robot = Robot(
             robot_json['id'],
             point3d_from_json(robot_json['position']),
+            robot_json['weight'],
+            robot_json['maximum_reach'],
         )
 
         min_activities_duration = robot_json['min_activities_duration']
@@ -133,7 +135,7 @@ class Model:
         elif activity_type == 'MOVEMENT':
             return self._process_movement_activity(activity_json, robot)
         elif activity_type == 'IDLE':
-            return self._process_idle_activity(activity_json, min_activities_duration)
+            return self._process_idle_activity(activity_json, robot, min_activities_duration)
         else:
             raise BadInputFileError('Activity type must be "MOVEMENT", "WORK" or "IDLE", not {}'.format(activity_type))
 
@@ -216,7 +218,7 @@ class Model:
 
         return movement_activity
 
-    def _process_idle_activity(self, activity_json: Dict, min_activities_duration: float) -> IdleActivity:
+    def _process_idle_activity(self, activity_json: Dict, robot: Robot, min_activities_duration: float) -> IdleActivity:
         idle_activity = IdleActivity(activity_json['id'])
 
         # add activity variables
