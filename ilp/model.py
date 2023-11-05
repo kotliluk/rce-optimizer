@@ -4,7 +4,7 @@ import gurobipy as g
 import matplotlib.pyplot as plt
 
 from ilp.activity import Activity, MovementActivity, WorkActivity, IdleActivity
-from preprocessing.energy_profile import compute_movement_energy_profile, compute_idle_energy_profile
+from preprocessing.energy_profile_estimator import EnergyProfileEstimator
 from preprocessing.robot import Robot
 from utils.bad_input_file_error import BadInputFileError
 from utils.json import point3d_from_json, joint_movement_from_json
@@ -29,6 +29,7 @@ class Model:
         self.activities: Dict[str, Activity] = dict()
         self.time_offsets: List[TimeOffset] = []
         self.collisions: List[Collision] = []
+        self.energy_profile_estimator = EnergyProfileEstimator()
 
     def load_from_json(self, cell_json: Dict):
         """
@@ -210,7 +211,7 @@ class Model:
 
         # computes activity energy consumption
         movement = joint_movement_from_json(activity_json, robot)
-        movement_activity.energy_profile_lines = compute_movement_energy_profile(movement)
+        movement_activity.energy_profile_lines = self.energy_profile_estimator.estimate_movement(movement)
         for line in movement_activity.energy_profile_lines:
             self._add_constr(
                 movement_activity.energy >= line.q * movement_activity.duration + line.c
@@ -234,7 +235,8 @@ class Model:
 
         # computes activity energy consumption
         point = point3d_from_json(activity_json['position'])
-        idle_activity.energy_profile_lines = compute_idle_energy_profile(point)
+        payload_weight = activity_json.get(['payload_weight'], 0.0)
+        idle_activity.energy_profile_lines = self.energy_profile_estimator.estimate_idling(point, robot, payload_weight)
         for line in idle_activity.energy_profile_lines:
             self._add_constr(
                 idle_activity.energy >= line.q * idle_activity.duration + line.c
