@@ -13,10 +13,24 @@ class Activity:
     def __init__(self, activity_id: str, activity_type: str):
         self.id = activity_id
         self.type = activity_type
+        self.prev: Optional[Activity] = None
+        self.next: Optional[Activity] = None
         # vars
         self.start_time: Optional[g.Var] = None
         self.duration: Optional[g.Var] = None
         self.energy: Optional[g.Var] = None
+
+    def is_first(self):
+        """
+        Returns whether the activity is the first one of its robot.
+        """
+        return self.prev is None
+
+    def is_last(self):
+        """
+        Returns whether the activity is the last one of its robot.
+        """
+        return self.next is None
 
     def end_time(self):
         """

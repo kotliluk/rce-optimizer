@@ -132,6 +132,10 @@
       "a_id": "",
       // Id of the second activity
       "b_id": ""
+      // Ratio of the activity previous to 'b_id' to be skipped (number 0-1) (optional, default 1)
+      "b_prev_skip_ratio": 1,
+      // Ratio of the activity next to 'b_id' to be skipped (number 0-1) (optional, default 1)
+      0"b_next_skip_ratio": 1
     }
   ]
 }

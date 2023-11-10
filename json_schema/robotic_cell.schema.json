@@ -112,6 +112,18 @@
           "b_id": {
             "description": "Id of the second activity",
             "type": "string"
+          },
+          "b_prev_skip_ratio" : {
+            "description": "Ratio of the activity previous to 'b_id' to be skipped (number 0-1) (optional, default 1)",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "b_next_skip_ratio" : {
+            "description": "Ratio of the activity next to 'b_id' to be skipped (number 0-1) (optional, default 1)",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
           }
         },
         "required": [ "a_id", "b_id" ]

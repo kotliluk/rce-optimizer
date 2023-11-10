@@ -10,7 +10,7 @@ from utils.bad_input_file_error import BadInputFileError
 from utils.json import point3d_from_json, joint_movement_from_json
 
 TimeOffset = Tuple[Activity, Activity, Optional[float], Optional[float]]
-Collision = Tuple[Activity, Activity, g.Var]
+Collision = Tuple[g.Var, Activity, Activity, float, float]
 
 
 class Model:
@@ -124,6 +124,13 @@ class Model:
             self._add_constr(
                 activities[i].start_time + activities[i].duration == activities[j].start_time
             )
+
+        # saves neighbor activities
+        activities[0].next = activities[1]
+        for i in range(1, len(activities) - 1):
+            activities[i].prev = activities[i - 1]
+            activities[i].next = activities[i + 1]
+        activities[-1].prev = activities[-2]
 
         # saves robot activities
         self.robot_to_activities[robot.id] = activities
@@ -271,16 +278,34 @@ class Model:
         b_id = collision_json['b_id']
         a = self.activities[a_id]
         b = self.activities[b_id]
+
+        if a.is_first() and b.is_first():
+            raise BadInputFileError(
+                'Cannot solve collision of {} and {}: activities are the first ones of their robots'.format(a_id, b_id)
+            )
+        if a.is_last() and b.is_last():
+            raise BadInputFileError(
+                'Cannot solve collision of {} and {}: activities are the last ones of their robots'.format(a_id, b_id)
+            )
+
+        b_prev_duration = 0 if b.prev is None else b.prev.duration
+        b_next_duration = 0 if b.next is None else b.next.duration
+
+        b_prev_ratio_input = collision_json.get('b_prev_skip_ratio')
+        b_next_ratio_input = collision_json.get('b_next_skip_ratio')
+        b_prev_ratio: float = 1 if b_prev_ratio_input is None else b_prev_ratio_input
+        b_next_ratio: float = 1 if b_next_ratio_input is None else b_next_ratio_input
+
         x = self._add_var(vtype=g.GRB.BINARY, name='x_{}_{}'.format(a_id, b_id))
         # adds collision resolution constraints
         self._add_constr(
-            a.start_time + a.duration <= b.start_time + (1 - x) * self.cycle_time
+            a.start_time + a.duration + b_prev_ratio * b_prev_duration <= b.start_time + (1 - x) * self.cycle_time
         )
         self._add_constr(
-            b.start_time + b.duration <= a.start_time + x * self.cycle_time
+            b.start_time + b.duration + b_next_ratio * b_next_duration <= a.start_time + x * self.cycle_time
         )
         # saves collision info
-        self.collisions.append((a, b, x))
+        self.collisions.append((x, a, b, b_prev_ratio, b_next_ratio))
 
     def _add_activity_vars(self, activity: Activity):
         activity.start_time = self._add_var(name='start_time_{}'.format(activity.id))
