@@ -1,10 +1,11 @@
-import numpy as np
-from scipy import optimize
 from typing import List
 
+import numpy as np
+from scipy import optimize
+
+import utils.geometry_2d as g2d
 from preprocessing.interpolation import InterpolationCoefs
 from utils.geometry_2d import Point2D, Line2D
-import utils.geometry_2d as g2d
 
 
 def _find_linear_piece_corners(X: np.ndarray, Y: np.ndarray, count: int):
@@ -20,9 +21,10 @@ def _find_linear_piece_corners(X: np.ndarray, Y: np.ndarray, count: int):
     min_x = X[0]
     max_x = X[-1]
     seg = np.full(count - 1, (max_x - min_x) / count)
+    x_count = X.shape[0]
 
     px_init = np.r_[np.r_[min_x, seg].cumsum(), max_x]
-    py_init = np.array([Y[np.abs(X - x) < (max_x - min_x) * 0.01].mean() for x in px_init])
+    py_init = np.array([Y[np.abs(X - x) < (max_x - min_x) / (x_count / 2)].mean() for x in px_init])
 
     def func(p):
         seg = p[:count - 1]
@@ -70,7 +72,31 @@ def piecewise_linearize(coefs: InterpolationCoefs, min_x: float, max_x: float, c
     return pieces
 
 
-if __name__ == '__main__':
+def piecewise_linearize_fun(fun, min_x: float, max_x: float, count: int = 4) -> List[Line2D]:
+    """
+    Computes linear approximation of the given function with "count" pieces.
+
+    :param fun: function to approximate
+    :param min_x: minimal x coordinate in interpolated input data point
+    :param max_x: maximal x coordinate in interpolated input data point
+    :param count: number of pieces in linear approximation
+    :return:
+    """
+    floored_min_x = np.floor(min_x)
+    if floored_min_x == 0:
+        floored_min_x = 0.1
+
+    xs = np.arange(floored_min_x, np.ceil(max_x), 0.1)
+    ys = fun(xs)
+
+    fx, fy = _find_linear_piece_corners(xs, ys, count)
+    points = list(map(lambda i: Point2D(fx[i], fy[i]), range(count + 1)))
+    pieces = list(map(lambda i: g2d.line_through_points(points[i], points[i + 1]), range(count)))
+
+    return pieces
+
+
+def _test_coefs():
     import matplotlib.pyplot as plt
     from preprocessing.interpolation import interpolate
 
@@ -90,8 +116,8 @@ if __name__ == '__main__':
     # 1 - 6779060
     # 2 - 461554
     # 3 - 92826
-    # 4 - 49215 -
-    # 5 - 24563 -
+    # 4 - 49215
+    # 5 - 24563
     # 6 - 19226
 
     xs = np.arange(np.floor(7.476), np.ceil(61.956), 0.1)
@@ -104,3 +130,28 @@ if __name__ == '__main__':
     plt.ylim([20000, 42000])
     plt.legend()
     plt.show()
+
+
+def _test_fun():
+    import matplotlib.pyplot as plt
+
+    def fun(x):
+        return np.power(x, 2)
+
+    lines = piecewise_linearize_fun(fun, 0, 2.3, 5)
+
+    print(lines)
+
+    xs = np.arange(0, 2.5, 0.1)
+    ys = fun(xs)
+    plt.plot(xs, ys, label=r"$e^{2x}$", linestyle='-')
+    for i, line in enumerate(lines):
+        lines_ys = line.q * xs + line.c
+        plt.plot(xs, lines_ys, linestyle='dotted')
+    plt.ylim([-1, 7])
+    plt.legend()
+    plt.show()
+
+
+if __name__ == '__main__':
+    _test_fun()
