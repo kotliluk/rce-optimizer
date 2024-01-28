@@ -1,7 +1,7 @@
 import json
 from typing import Dict, Any
 
-from preprocessing.movement import JointMovement, Movement
+from preprocessing.movement import PTPMovement, Movement
 from preprocessing.robot import Robot
 from utils.geometry_3d import Point3D
 
@@ -31,7 +31,7 @@ def robot_from_json(robot_json: Dict) -> Robot:
 
 
 def joint_movement_from_json(json_dict: Dict, robot: Robot) -> Movement:
-    return JointMovement(
+    return PTPMovement(
         point3d_from_json(json_dict['start']),
         point3d_from_json(json_dict['end']),
         robot,

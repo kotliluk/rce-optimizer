@@ -1,5 +1,7 @@
 from numpy import sqrt, arccos
 
+from utils.geometry_2d import Point2D
+
 
 class Point3D:
     def __init__(self, x: float, y: float, z: float):
@@ -27,6 +29,9 @@ class Point3D:
 
     def magnitude(self) -> float:
         return sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
+
+    def to_2d(self) -> Point2D:
+        return Point2D(self.x, self.y)
 
 
 def distance(a: Point3D, b: Point3D) -> float:
@@ -59,3 +64,10 @@ def null_z_distance(a: Point3D, b: Point3D) -> float:
     Computes euclidean distance between given points with null 'z' axis.
     """
     return distance(null_z(a), null_z(b))
+
+
+def center(a: Point3D, b: Point3D) -> Point3D:
+    """
+    Return a point in the center of line between given points a and b.
+    """
+    return (a + b) / 2

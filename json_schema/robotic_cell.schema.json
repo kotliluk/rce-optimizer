@@ -8,7 +8,7 @@
   "type": "object",
   "properties": {
     "cycle_time": {
-      "description": "Maximum cycle time",
+      "description": "Cycle time",
       "type": "number"
     },
     "note": {
