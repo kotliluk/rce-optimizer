@@ -29,7 +29,7 @@ class Model:
         self.activities: Dict[str, Activity] = dict()
         self.time_offsets: List[TimeOffset] = []
         self.collisions: List[Collision] = []
-        self.energy_profile_estimator = EnergyProfileEstimator()
+        self.ep_estimator = EnergyProfileEstimator()
 
     def load_from_json(self, cell_json: Dict):
         """
@@ -184,11 +184,13 @@ class Model:
         return work_activity
 
     def _process_movement_activity(self, activity_json: Dict, robot: Robot) -> MovementActivity:
+        min_dur = activity_json['min_duration']
+        max_dur = activity_json['max_duration']
         # add activity params
         movement_activity = MovementActivity(
             activity_json['id'],
-            activity_json['min_duration'],
-            activity_json['max_duration'],
+            min_dur,
+            max_dur,
             activity_json.get('fixed_start_time'),
             activity_json.get('fixed_end_time'),
         )
@@ -218,7 +220,7 @@ class Model:
 
         # computes activity energy consumption
         movement = joint_movement_from_json(activity_json, robot)
-        movement_activity.energy_profile_lines = self.energy_profile_estimator.estimate_movement(movement)
+        movement_activity.energy_profile_lines = self.ep_estimator.estimate_movement(movement, min_dur, max_dur)
         for line in movement_activity.energy_profile_lines:
             self._add_constr(
                 movement_activity.energy >= line.q * movement_activity.duration + line.c
@@ -243,7 +245,7 @@ class Model:
         # computes activity energy consumption
         point = point3d_from_json(activity_json['position'])
         payload_weight = activity_json.get(['payload_weight'], 0.0)
-        idle_activity.energy_profile_lines = self.energy_profile_estimator.estimate_idling(point, robot, payload_weight)
+        idle_activity.energy_profile_lines = self.ep_estimator.estimate_idling(point, robot, payload_weight)
         for line in idle_activity.energy_profile_lines:
             self._add_constr(
                 idle_activity.energy >= line.q * idle_activity.duration + line.c
@@ -299,10 +301,10 @@ class Model:
         x = self._add_var(vtype=g.GRB.BINARY, name='x_{}_{}'.format(a_id, b_id))
         # adds collision resolution constraints
         self._add_constr(
-            a.start_time + a.duration + b_prev_ratio * b_prev_duration <= b.start_time + (1 - x) * self.cycle_time
+            a.start_time + a.duration + b_prev_ratio * b_prev_duration <= b.start_time + 2 * (1 - x) * self.cycle_time
         )
         self._add_constr(
-            b.start_time + b.duration + b_next_ratio * b_next_duration <= a.start_time + x * self.cycle_time
+            b.start_time + b.duration + b_next_ratio * b_next_duration <= a.start_time + 2 * x * self.cycle_time
         )
         # saves collision info
         self.collisions.append((x, a, b, b_prev_ratio, b_next_ratio))
