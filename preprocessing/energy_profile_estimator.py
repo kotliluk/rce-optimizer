@@ -4,7 +4,7 @@ from numpy import sqrt
 
 from preprocessing.energy_profile_parameters import DIR_TYPES, DEFAULT_PARAMETERS_MANUAL, merge_parameters, \
     EnergyProfileParameters
-from preprocessing.movement import Movement, PTPMovement
+from preprocessing.movement import Movement
 from preprocessing.robot import Robot
 from utils.geometry_2d import Line2D, Point2D, line_through_points
 from utils.geometry_3d import Point3D, null_z_distance
@@ -124,33 +124,18 @@ class EnergyProfileEstimator:
     def estimate_idling(self, point: Point3D, robot: Robot, payload_weight: float) -> List[Line2D]:
         """
         Computes piece-wise linearization of idling in the given point.
-
-        Used params:
-        - c_robot_weight_coef (default 1/300)
-        - c_payload_weight_coef (default 1/100)
-        - i_closest (default 250)
-        - i_furthest (default 300)
         """
-
-        '''
-        Idea:
-        In experiments, the static consumption close to the robot axis was 275 W and far was 298 W.
-        We simplify it to consumption of "i_closest" W in axis and "i_furthest" W in maximum reach.
-        We compute relative weight (using robot and payload weight and their coefficients params). 
-        '''
-        robot_weight_coef = self.parameters['common']['robot_weight_coef']
-        payload_weight_coef = self.parameters['common']['payload_weight_coef']
-        relative_weight = robot.weight * robot_weight_coef + payload_weight * payload_weight_coef
-        relative_distance = null_z_distance(robot.axis, point) / robot.maximum_reach
-        closest_consumption = self.parameters['idling']['closest_consumption']
-        furthest_consumption = self.parameters['idling']['furthest_consumption']
-        q = relative_weight * (closest_consumption + relative_distance * (furthest_consumption - closest_consumption))
+        # robot_weight_coef = self.parameters['common']['robot_weight_coef']
+        # payload_weight_coef = self.parameters['common']['payload_weight_coef']
+        # relative_weight = robot.weight * robot_weight_coef + payload_weight * payload_weight_coef
+        d = null_z_distance(robot.axis, point)
+        h = point.z
+        base = self.parameters['idling']['base']
+        dist_a = self.parameters['idling']['dist_coef__A']
+        dist_b = self.parameters['idling']['dist_coef__B']
+        dist_c = self.parameters['idling']['dist_coef__C']
+        height_a = self.parameters['idling']['height_coef__A']
+        height_b = self.parameters['idling']['height_coef__B']
+        height_c = self.parameters['idling']['height_coef__C']
+        q = base * (dist_a * d * d + dist_b * d + dist_c) * (height_a * h * h + height_b * h + height_c)
         return [Line2D(q, 0.0)]
-
-
-if __name__ == '__main__':
-    estimator = EnergyProfileEstimator()
-    robot = Robot('1', Point3D(0, 0, 0), 0, 2000)
-    movement = PTPMovement(Point3D(500, 125, 0), Point3D(500, -125, 0), robot)
-    lines = estimator.estimate_movement(movement, 0.42, 1.68)
-    print(lines)

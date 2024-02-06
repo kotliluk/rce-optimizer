@@ -7,6 +7,7 @@ from ilp.activity import Activity, MovementActivity, WorkActivity, IdleActivity
 from preprocessing.energy_profile_estimator import EnergyProfileEstimator
 from preprocessing.robot import Robot
 from utils.bad_input_file_error import BadInputFileError
+from utils.geometry_2d import Line2D
 from utils.json import point3d_from_json, joint_movement_from_json
 
 TimeOffset = Tuple[Activity, Activity, Optional[float], Optional[float]]
@@ -92,7 +93,7 @@ class Model:
             list(map(lambda a: a.id, activities)),
             list(map(lambda a: a.duration.x, activities)),
             left=list(map(lambda a: a.start_time.x, activities)),
-            color='b',
+            color=list(map(lambda a: a.gantt_chart_color(), activities)),
         )
 
         plt.savefig(gantt_filename)
@@ -218,9 +219,15 @@ class Model:
                 movement_activity.start_time + movement_activity.duration == movement_activity.fixed_end_time,
             )
 
-        # computes activity energy consumption
-        movement = joint_movement_from_json(activity_json, robot)
-        movement_activity.energy_profile_lines = self.ep_estimator.estimate_movement(movement, min_dur, max_dur)
+        # TODO - for tests only
+        given_lines = activity_json.get('given_lines')
+        if given_lines is not None:
+            movement_activity.energy_profile_lines = [Line2D(float(g_l['q']), float(g_l['c'])) for g_l in given_lines]
+        else:
+            # computes activity energy consumption
+            movement = joint_movement_from_json(activity_json, robot)
+            movement_activity.energy_profile_lines = self.ep_estimator.estimate_movement(movement, min_dur, max_dur)
+
         for line in movement_activity.energy_profile_lines:
             self._add_constr(
                 movement_activity.energy >= line.q * movement_activity.duration + line.c
@@ -235,17 +242,25 @@ class Model:
         self._add_activity_vars(idle_activity)
 
         # constraints the idling duration
+        min_dur = activity_json.get('min_duration', 0.0)
         self._add_constr(
-            0 <= idle_activity.duration,
+            min_dur <= idle_activity.duration,
         )
+        max_dur = activity_json.get('max_duration', self.cycle_time - min_activities_duration)
         self._add_constr(
-            idle_activity.duration <= self.cycle_time - min_activities_duration,
+            idle_activity.duration <= max_dur,
         )
 
-        # computes activity energy consumption
-        point = point3d_from_json(activity_json['position'])
-        payload_weight = activity_json.get(['payload_weight'], 0.0)
-        idle_activity.energy_profile_lines = self.ep_estimator.estimate_idling(point, robot, payload_weight)
+        # TODO - for tests only
+        given_consumption = activity_json.get('given_consumption')
+        if given_consumption is not None:
+            idle_activity.energy_profile_lines = [Line2D(float(given_consumption), 0)]
+        else:
+            # computes activity energy consumption
+            point = point3d_from_json(activity_json['position'])
+            payload_weight = activity_json.get('payload_weight', 0.0)
+            idle_activity.energy_profile_lines = self.ep_estimator.estimate_idling(point, robot, payload_weight)
+
         for line in idle_activity.energy_profile_lines:
             self._add_constr(
                 idle_activity.energy >= line.q * idle_activity.duration + line.c

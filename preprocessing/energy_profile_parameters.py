@@ -11,8 +11,15 @@ class CommonParameters(TypedDict):
 
 
 class IdlingParameters(TypedDict):
-    closest_consumption: float
-    furthest_consumption: float
+    base: float
+
+    dist_coef__A: float
+    dist_coef__B: float
+    dist_coef__C: float
+
+    height_coef__A: float
+    height_coef__B: float
+    height_coef__C: float
 
 
 class MovementParameters(TypedDict):
@@ -98,16 +105,25 @@ class EnergyProfileParameters(TypedDict):
     movement: MovementsParameters
 
 
-# parameter values obtained by minimization of sum of squared relative errors on a Kuka KR16R2010 in Process Simulate
+# parameter values obtained by best behavior in optimization on a Kuka KR16R2010 in Process Simulate
 DEFAULT_PARAMETERS_MANUAL: EnergyProfileParameters = {
     'common': {
         'robot_weight_coef': (1/100)*(1/3),
         'payload_weight_coef': (1/100),
     },
+    # parameters obtained by minimization of maximum error on a Kuka KR16R2010 in Process Simulate
     'idling': {
-        'closest_consumption': 250.0,
-        'furthest_consumption': 300.0,
+        'base': 459.467,
+
+        'dist_coef__A': 0.0000000498495596354268,
+        'dist_coef__B': -0.0000572767214878698,
+        'dist_coef__C': 0.967112983697484,
+
+        'height_coef__A': 0.0000000101273980243634,
+        'height_coef__B': -0.0000145216802956174,
+        'height_coef__C': 1.02632067389933,
     },
+    # parameters obtained by minimization of sum of squared relative errors on a Kuka KR16R2010 in Process Simulate
     'movement': {
         'min_duration': {
             'base': 173.93394017094002,
@@ -292,8 +308,15 @@ def merge_parameters(c: EnergyProfileParameters, d: EnergyProfileParameters) -> 
             'payload_weight_coef': _p(c, d, 'common.payload_weight_coef'),
         },
         'idling': {
-            'closest_consumption': _p(c, d, 'idling.closest_consumption'),
-            'furthest_consumption': _p(c, d, 'idling.furthest_consumption'),
+            'base': _p(c, d, 'idling.base'),
+
+            'dist_coef__A': _p(c, d, 'idling.dist_coef__A'),
+            'dist_coef__B': _p(c, d, 'idling.dist_coef__B'),
+            'dist_coef__C': _p(c, d, 'idling.dist_coef__C'),
+
+            'height_coef__A': _p(c, d, 'idling.height_coef__A'),
+            'height_coef__B': _p(c, d, 'idling.height_coef__B'),
+            'height_coef__C': _p(c, d, 'idling.height_coef__C'),
         },
         'movement': {
             'min_duration': {

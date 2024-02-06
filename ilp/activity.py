@@ -51,6 +51,9 @@ class Activity:
             'energy': round(self.energy.x, 6),
         }
 
+    def gantt_chart_color(self):
+        return 'b'
+
     def __str__(self):
         return 'activity "{}", VARS: s={}, d={}, e={}'.format(
             self.id,
@@ -75,6 +78,14 @@ class IdleActivity(Activity):
 
     def set_energy_profile(self, energy_profile_lines: List[Line2D]):
         self.energy_profile_lines = energy_profile_lines
+
+    def solution_json_dict(self):
+        d = super().solution_json_dict()
+        d['energy_profile'] = [{'q': line.q, 'c': line.c} for line in self.energy_profile_lines]
+        return d
+
+    def gantt_chart_color(self):
+        return 'g'
 
     def __str__(self):
         super_str = super().__str__()
@@ -109,6 +120,14 @@ class MovementActivity(Activity):
     def set_energy_profile(self, energy_profile_lines: List[Line2D]):
         self.energy_profile_lines = energy_profile_lines
 
+    def solution_json_dict(self):
+        d = super().solution_json_dict()
+        d['energy_profile'] = [{'q': line.q, 'c': line.c} for line in self.energy_profile_lines]
+        return d
+
+    def gantt_chart_color(self):
+        return 'b'
+
     def __str__(self):
         super_str = super().__str__()
         return 'Movement {}, PARAMS: d_min={}, d_max={}, s_fixed={}, e_fixed={}, lines={}'.format(
@@ -139,6 +158,9 @@ class WorkActivity(Activity):
         self.fixed_duration: float = fixed_duration
         self.fixed_start_time: Optional[float] = fixed_start_time
         self.fixed_end_time: Optional[float] = fixed_end_time
+
+    def gantt_chart_color(self):
+        return 'r'
 
     def __str__(self):
         super_str = super().__str__()

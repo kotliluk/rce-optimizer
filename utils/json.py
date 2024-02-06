@@ -35,5 +35,5 @@ def joint_movement_from_json(json_dict: Dict, robot: Robot) -> Movement:
         point3d_from_json(json_dict['start']),
         point3d_from_json(json_dict['end']),
         robot,
-        json_dict['payload_weight'],
+        json_dict.get('payload_weight', 0.0),
     )
