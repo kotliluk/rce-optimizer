@@ -3,3 +3,6 @@ __pycache__/
 
 # IDE
 /.idea
+
+# generated input
+/_inputs/time_windows

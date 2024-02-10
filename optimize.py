@@ -1,3 +1,5 @@
+from gurobipy import GRB
+
 from ilp.model import Model
 from utils.json import read_json_from_file, save_to_json_file
 
@@ -13,14 +15,11 @@ model = Model()
 json = read_json_from_file(input_filename)
 model.load_from_json(json)
 model.optimize()
-print(model.model.display())
 
-for activity in model.activities.values():
-    print(activity)
-
-solution = model.solution_json_dict()
-print(solution)
-save_to_json_file(output_filename, solution)
-
-if gantt_chart_filename is not None:
+if model.status() != GRB.OPTIMAL:
+    print(f'ERROR: Model has status: {model.status()}')
+else:
+    print(f'OK:    Optimal solution for model found')
+    solution = model.solution_json_dict()
+    save_to_json_file(output_filename, solution)
     model.create_gantt_chart(gantt_chart_filename, (10, 5))

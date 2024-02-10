@@ -59,6 +59,19 @@ class Model:
         """
         self.model.optimize()
 
+    def status(self):
+        """
+        Returns status of the model after optimization.
+        Values: GRB.OPTIMAL, GRB.INF_OR_UNBD, GRB.INFEASIBLE, GRB.UNBOUNDED.
+        """
+        return self.model.Status
+
+    def reset(self):
+        """
+        Resets Gurobi model.
+        """
+        self.model.reset()
+
     def solution_json_dict(self):
         """
         Creates a dictionary with an optimization solution ready to be saved in a JSON file.
@@ -97,6 +110,7 @@ class Model:
         )
 
         plt.savefig(gantt_filename)
+        plt.close()
 
     def _process_robot(self, robot_json: Dict):
         robot = Robot(
