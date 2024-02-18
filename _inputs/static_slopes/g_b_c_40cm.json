@@ -1,0 +1,46 @@
+{
+  "cycle_time": 4,
+  "description": "Length: 40cm, positions: G-B-C",
+  "robots": [
+    {
+      "id": "r01",
+      "position": { "x": 0.0, "y": 0.0, "z": 0.0 },
+      "weight": 400.0,
+      "maximum_reach": 2016.0,
+      "min_activities_duration": 0.828,
+      "activities": [
+        {
+          "type": "IDLE",
+          "id": "r01_a01_idle_g",
+          "position": { "x": 1450, "y": 200, "z": 700 }
+        },
+        {
+          "type": "MOVEMENT",
+          "id": "r01_a02_move_gb",
+          "min_duration": 0.432,
+          "max_duration": 2.412,
+          "start": { "x": 1450, "y": 200, "z": 700 },
+          "end": { "x": 1050, "y": -200, "z": 300 }
+        },
+        {
+          "type": "IDLE",
+          "id": "r01_a03_idle_b",
+          "position": { "x": 1050, "y": -200, "z": 300 }
+        },
+        {
+          "type": "MOVEMENT",
+          "id": "r01_a04_move_bc",
+          "min_duration": 0.396,
+          "max_duration": 1.776,
+          "start": { "x": 1050, "y": -200, "z": 300 },
+          "end": { "x": 1450, "y": 200, "z": 300 }
+        },
+        {
+          "type": "IDLE",
+          "id": "r01_a05_idle_c",
+          "position": { "x": 1450, "y": 200, "z": 300 }
+        }
+      ]
+    }
+  ]
+}

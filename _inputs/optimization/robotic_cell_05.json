@@ -1,0 +1,112 @@
+{
+  "cycle_time": 5.0,
+  "note": "1 robot with 7 moves - simulated in ProcessSimulate",
+  "robots": [
+    {
+      "id": "r01",
+      "position": { "x": 0.0, "y": 0.0, "z": 0.0 },
+      "weight": 400.0,
+      "maximum_reach": 750.0,
+      "min_activities_duration": 4.116,
+      "activities": [
+        {
+          "type": "IDLE",
+          "id": "r01_a01_idle_A",
+          "position": { "x": 0.0, "y": 1000.0, "z": 1000.0 },
+          "min_duration": 0.156
+        },
+        {
+          "type": "MOVEMENT",
+          "id": "r01_a02_move_1",
+          "min_duration": 0.648,
+          "max_duration": 3.408,
+          "start": { "x": 0.0, "y": 1000.0, "z": 1000.0 },
+          "end": { "x": -1000.0, "y": 500.0, "z": 0.0 }
+        },
+        {
+          "type": "IDLE",
+          "id": "r01_a03_idle_B",
+          "position": { "x": -1000.0, "y": 500.0, "z": 0.0 }
+        },
+        {
+          "type": "MOVEMENT",
+          "id": "r01_a04_move_2",
+          "min_duration": 0.420,
+          "max_duration": 1.668,
+          "start": { "x": -1000.0, "y": 500.0, "z": 0.0 },
+          "end": { "x": -1000.0, "y": 1000.0, "z": 500.0 }
+        },
+        {
+          "type": "IDLE",
+          "id": "r01_a05_idle_C",
+          "position": { "x": -1000.0, "y": 1000.0, "z": 500.0 }
+        },
+        {
+          "type": "MOVEMENT",
+          "id": "r01_a06_move_3",
+          "min_duration": 0.492,
+          "max_duration": 2.472,
+          "start": { "x": 400.0, "y": 1000.0, "z": 500.0 },
+          "end": { "x": 0.0, "y": 1000.0, "z": 500.0 }
+        },
+        {
+          "type": "IDLE",
+          "id": "r01_a07_idle_D",
+          "position": { "x": 0.0, "y": 1000.0, "z": 500.0 }
+        },
+        {
+          "type": "MOVEMENT",
+          "id": "r01_a08_move_4",
+          "min_duration": 0.456,
+          "max_duration": 2.136,
+          "start": { "x": 400.0, "y": 1000.0, "z": 500.0 },
+          "end": { "x": 0.0, "y": 1500.0, "z": 500.0 }
+        },
+        {
+          "type": "IDLE",
+          "id": "r01_a09_idle_E",
+          "position": { "x": 0.0, "y": 1500.0, "z": 500.0 }
+        },
+        {
+          "type": "MOVEMENT",
+          "id": "r01_a10_move_5",
+          "min_duration": 0.648,
+          "max_duration": 4.392,
+          "start": { "x": 400.0, "y": 1500.0, "z": 500.0 },
+          "end": { "x": 0.0, "y": 500.0, "z": 0.0 }
+        },
+        {
+          "type": "IDLE",
+          "id": "r01_a11_idle_F",
+          "position": { "x": 500.0, "y": 500.0, "z": 0.0 }
+        },
+        {
+          "type": "MOVEMENT",
+          "id": "r01_a12_move_6",
+          "min_duration": 0.612,
+          "max_duration": 4.428,
+          "start": { "x": 400.0, "y": 500.0, "z": 0.0 },
+          "end": { "x": 0.0, "y": 500.0, "z": 500.0 }
+        },
+        {
+          "type": "IDLE",
+          "id": "r01_a13_idle_G",
+          "position": { "x": 1000.0, "y": 500.0, "z": 500.0 }
+        },
+        {
+          "type": "MOVEMENT",
+          "id": "r01_a14_move_7",
+          "min_duration": 0.684,
+          "max_duration": 4.896,
+          "start": { "x": 1000.0, "y": 500.0, "z": 500.0 },
+          "end": { "x": 0.0, "y": 1000.0, "z": 1000.0 }
+        },
+        {
+          "type": "IDLE",
+          "id": "r01_a15_idle_A",
+          "position": { "x": 0.0, "y": 1000.0, "z": 1000.0 }
+        }
+      ]
+    }
+  ]
+}
