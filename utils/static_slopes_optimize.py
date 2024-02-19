@@ -11,8 +11,7 @@ INPUT_DIR = 'D:/Uloziste/Skola/DP/Algorithm/rce-optimizer/_inputs/static_slopes'
 CSV_RESULT_PATH = 'D:/Uloziste/Skola/DP/Algorithm/rce-optimizer/_inputs/static_slopes_results.csv'
 
 csv_result: List[List[str]] = [[
-    'length', 'point A', 'point B', 'point C', 'B slope',
-    'A-B line 1', 'A-B line 2', 'A-B line 3', 'A-B line 1', 'A-B line 2', 'A-B line 3',
+    'length', 'point A', 'point B', 'point C', 'B slope', 'A-B line 3', 'B-C line 3', 'Avg line slope',
 ]]
 
 for length in [40]:
@@ -31,7 +30,7 @@ for length in [40]:
 
         if model.status() != GRB.OPTIMAL:
             print(f'ERROR: Model for {point_a}_{point_b}_{point_c}, {length}cm has status: {model.status()}')
-            csv_row += [f'Not optimal solution found, status: {model.status()}', '', '', '', '', '', '', '']
+            csv_row += [f'Not optimal solution found, status: {model.status()}', '', '', '']
         else:
             solution = model.solution_json_dict()
             save_to_json_file(output_filename, solution)
@@ -40,13 +39,10 @@ for length in [40]:
             ab_movement: MovementActivity = model.activities[f'r01_a02_move_{point_a}{point_b}']
             bc_movement: MovementActivity = model.activities[f'r01_a04_move_{point_b}{point_c}']
             b_slope = b_position.energy_profile_lines[0].q
-            ab_lines = ab_movement.energy_profile_lines
-            bc_lines = bc_movement.energy_profile_lines
+            ab_line3 = ab_movement.energy_profile_lines[2]
+            bc_line3 = bc_movement.energy_profile_lines[2]
             print(f'OK:    Optimal solution for model for {point_a}_{point_b}_{point_c}, {length}cm found')
-            csv_row += [f'y = {b_slope}x',
-                        str(ab_lines[0]), str(ab_lines[1]), str(ab_lines[2]),
-                        str(bc_lines[0]), str(bc_lines[1]), str(bc_lines[2]),
-                        ]
+            csv_row += [f'y = {b_slope}x', str(ab_line3), str(bc_line3), str((ab_line3.q + bc_line3.q) / 2)]
 
         csv_result.append(csv_row)
 
