@@ -103,22 +103,16 @@ class EnergyProfileEstimator:
             self.parameters['movement']['max_duration'], movement, dir_ratios,
         )
 
-        left_opt_dur_shift = self.parameters['movement']['opt_duration']['left_dur_shift']
-        min_left_opt_dur_ratio = self.parameters['movement']['opt_duration']['min_left_dur_ratio']
-        left_opt_dur = max(left_opt_dur_shift * opt_dur, min_left_opt_dur_ratio * min_dur)
-        right_opt_dur_shift = self.parameters['movement']['opt_duration']['right_dur_shift']
-        min_right_opt_dur_ratio = self.parameters['movement']['opt_duration']['min_right_dur_ratio']
-        right_opt_dur = max(right_opt_dur_shift * opt_dur, min_right_opt_dur_ratio * min_dur)
+        min_opt_dur_ratio = self.parameters['movement']['opt_duration']['min_dur_ratio']
+        validated_opt_dur = max(opt_dur, min_opt_dur_ratio * min_dur)
 
         min_point = Point2D(min_dur, min_dur_energy)
-        opt_left_point = Point2D(left_opt_dur, opt_dur_energy)
-        opt_right_point = Point2D(right_opt_dur, opt_dur_energy)
+        opt_point = Point2D(validated_opt_dur, opt_dur_energy)
         max_point = Point2D(max_dur, max_dur_energy)
 
         return [
-            line_through_points(min_point, opt_left_point),
-            Line2D(0.0, 0.0),  # line through opt_left and opt_right points (both have 0.0 y value)
-            line_through_points(opt_right_point, max_point),
+            line_through_points(min_point, opt_point),
+            line_through_points(opt_point, max_point),
         ]
 
     def estimate_idling(self, point: Point3D, robot: Robot, payload_weight: float) -> List[Line2D]:

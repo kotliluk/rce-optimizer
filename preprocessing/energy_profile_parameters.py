@@ -81,16 +81,9 @@ class MovementParameters(TypedDict):
 
 
 class OptMovementParameters(MovementParameters):
-    # default shift of the left point of optimal duration segment (used as: left_dur_shift * apr_opt_dur), value (0, 1)
-    left_dur_shift: float
-    # min ratio used for the left point of optimal duration segment (used as: min_left_dur_ratio * min_dur), value > 1
-    # as left point of opt duration segment is set MAX(left_dur_shift * apr_opt_dur, min_left_dur_ratio * min_dur)
-    min_left_dur_ratio: float
-    # default shift of the right point of optimal duration segment (used as: right_dur_shift * apr_opt_dur), value > 1
-    right_dur_shift: float
-    # min ratio used for the right point of optimal duration segment (used as: min_right_dur_ratio * min_dur), value > 1
-    # as right point of opt duration segment is set MAX(right_dur_shift * apr_opt_dur, min_right_dur_ratio * min_dur)
-    min_right_dur_ratio: float
+    # min ratio used for the optimal duration (used as: min_dur_ratio * min_dur), value > 1
+    # the optimal duration is set MAX(approximated_opt_dur, min_dur_ratio * min_dur)
+    min_dur_ratio: float
 
 
 class MovementsParameters(TypedDict):
@@ -283,10 +276,7 @@ DEFAULT_PARAMETERS_MANUAL: EnergyProfileParameters = {
             'avg_height_coef__down__A': -8.363173067012508e-08,
             'avg_height_coef__down__B': 2.5691927117600266e-05,
             'avg_height_coef__down__C': 1.0223325863675738,
-            'left_dur_shift': 0.9,
-            'min_left_dur_ratio': 1.1,
-            'right_dur_shift': 1.1,
-            'min_right_dur_ratio': 1.3,
+            'min_dur_ratio': 1.1,
         },
     },
 }
@@ -490,10 +480,7 @@ def merge_parameters(c: EnergyProfileParameters, d: EnergyProfileParameters) -> 
                 'avg_height_coef__down__B': _p(c, d, 'movement.opt_duration.avg_height_coef__down__B'),
                 'avg_height_coef__down__C': _p(c, d, 'movement.opt_duration.avg_height_coef__down__C'),
 
-                'left_dur_shift': _p(c, d, 'movement.opt_duration.left_dur_shift'),
-                'min_left_dur_ratio': _p(c, d, 'movement.opt_duration.min_left_dur_ratio'),
-                'right_dur_shift': _p(c, d, 'movement.opt_duration.right_dur_shift'),
-                'min_right_dur_ratio': _p(c, d, 'movement.opt_duration.min_right_dur_ratio'),
+                'min_dur_ratio': _p(c, d, 'movement.opt_duration.min_dur_ratio'),
             },
         },
     }
