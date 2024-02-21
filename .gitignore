@@ -4,5 +4,8 @@ __pycache__/
 # IDE
 /.idea
 
+# Virtual environment
+/venv
+
 # generated input
 /_inputs/time_windows
