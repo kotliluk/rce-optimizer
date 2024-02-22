@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Callable, Dict
 
 from reactpy import component
 
@@ -11,10 +11,10 @@ ActionProps = Union[IdleActionProps, MoveActionProps, WorkActionProps]
 
 
 @component
-def Action(props: ActionProps):
+def Action(props: ActionProps, on_change: Callable, app_state: Dict):
     if props['type'] == ActionType.IDLE:
-        return IdleAction(props)
+        return IdleAction(props, on_change, app_state)
     elif props['type'] == ActionType.WORK:
-        return WorkAction(props)
+        return WorkAction(props, on_change, app_state)
     else:
-        return MoveAction(props)
+        return MoveAction(props, on_change, app_state)
